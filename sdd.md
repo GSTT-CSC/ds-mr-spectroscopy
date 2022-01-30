@@ -8,13 +8,6 @@ This document describes the detailed designs derived from the requirements defin
 
 The scope of this document is limited to the design of the MRSpectroscopy analysis software. This design document does not address any design decisions belonging to other subsystems, such as dicomserver.
 
-- SRS002: The application must produce a dicom enscapusulated PDF of the analysis for archiving by dicomserver.
-- SRS003: The application must be able to return a result within 10 minutes.
-- SRS004: The application must be able to accurately measure the metabolites quantities in MR Spectroscopy data
-- HZD001: Unit tests, integration tests, error handling and error messages will be built into the tools code. Dummy data of with known movement will be used to test the tool.
-- HZD002: A requirement.txt is used for dicomserver to store required versions of all software used within. Specific versions of the software used for this tool will be added to it. Testing of new versions of all software used within the tool will be undertaken before deployment.
-- HZD003: All staff altering this code will be required to do so using GitHub. This will maintain version control and audit trails for all changes made to the code.  Independent code review will also be undertaken on all code before deployment.  Limited staff can approve code changes and deploy them to production
-
 ## Specification
 
 ### SDS-001
@@ -37,3 +30,8 @@ The software shall convert the analysis report into a PDF and use an appropriate
 Addresses: SRS004
 
 The software shall use the (Tarquin)[http://tarquin.sourceforge.net] software to perform the metabolite fitting and quantification.
+
+### SDS-004
+Addresses: HZD002
+
+The software shall use test data with known metabolite quantities to perform regression and accuracy testing.
