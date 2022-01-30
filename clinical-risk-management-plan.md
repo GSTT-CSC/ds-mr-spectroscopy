@@ -79,5 +79,4 @@ Each Hazard will be discussed by the programme Clinical Safety team and any othe
  
 Estimation of clinical risks.
 
-For each identified hazard estimation will be made of the clinical risk.  This will include the severity of the hazard, the likelihood of the hazard and the resulting clinical risk.  The estimation process will follow that established by the safety processes defined in DCB0129.  A copy of the risk assessment matrix is provided in the appendix.
- 
+For each identified hazard estimation will be made of the clinical risk.  This will include the severity of the hazard, the likelihood of the hazard and the resulting clinical risk.  The estimation process will follow that established by the safety processes defined in DCB0129.
