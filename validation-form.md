@@ -1,19 +1,17 @@
-# \<Software Title\> - Software Validation Form
+# \<MRSpectroscopy\> - Software Validation Form
 
 ## 1. Information about the Software
 
 |           |                                          |
 |-----------|------------------------------------------|
-| QMS ID    | \<ID\>                                   |
-| Name      | \<Name\>                                 |
-| Version   | \<x.x.x\>                                |
-| Location  | \<url\>                                  |
-| Processes | \<processes in which this tool is used\> |
+| QMS ID    | \<0018\>                                 |
+| Name      | \<MRSpectroscopy\>                       |
+| Version   | \<1.0.0\>                                |
+| Location  | \<https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy\>                                  |
 
 ## 2. Intended Use and Use Context
-
-> Describe intended use and usage context (e.g. automation, testing, control, altering). Include technical and
-> usage requirements that the system shall fulfill.
+This software is a dicomserver plugin that is used to automatically analyse MR Spectroscopy data and create a dicom encapsualated PDF of the results and send them
+to PACS.
 
 ## 3. Quality Relevance
 
@@ -22,20 +20,16 @@ relevant and should be validated.*
 
 | **Criterion**                                                                                                                         | **Y/N** |
 |---------------------------------------------------------------------------------------------------------------------------------------|---------|
-| Is the system used in one or more processes that steer the QMS?                                                                       |         |
-| Could the conformity of the organization’s medical devices be affected if the system does not work according to its specifications?   |         |
-| Could risks arise for patients, users, third parties or the organization if the system does not work according to its specifications? |         |
-| Does the software generate or manage data / records that are relevant to the QMS or medical device approval by authorities?           |         |
-| Is the software used to generate electronic signatures on documents or records required by the QMS and/or state authorities?          |         |
+| Is the system used in one or more processes that steer the QMS?                                                                       |    N    |
+| Could the conformity of the organization’s medical devices be affected if the system does not work according to its specifications?   |    N    |
+| Could risks arise for patients, users, third parties or the organization if the system does not work according to its specifications? |    Y    |
+| Does the software generate or manage data / records that are relevant to the QMS or medical device approval by authorities?           |    Y    |
+| Is the software used to generate electronic signatures on documents or records required by the QMS and/or state authorities?          |    N    |
 
 ## 4. General Assessment
 
 ### 4.1 Software Category
 
-* Infrastructure software (e.g. operating systems, databases, office applications, antivirus, network
-  management software) (GAMP category 1)
-* Non-configurable software (GAMP category 3)
-* Configurable software (GAMP category 4)
 * Custom (self-developed) software (GAMP category 5)
 
 ### 4.2 Risk Assessment
