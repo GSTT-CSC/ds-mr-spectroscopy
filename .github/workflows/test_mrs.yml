@@ -1,0 +1,67 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Test MRS
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6.8
+
+      - name: Install system requirements
+        run: |
+          apt-get update && apt-get install default-libmysqlclient-dev poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
+
+
+      - name: install dicomserver
+        run: |
+          git clone https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git
+          git clone git@bitbucket.org:gsttmri/dicomserver.git ../dicomserver --branch master
+          pip install --upgrade pip
+          pip install -r ../dicomserver/requirements.txt
+          python ../dicomserver/setup.py install
+
+      - name: Install Tarquin
+        run: |
+          mkdir ../tarquin_folder && wget -O tarquin.tar.gz https://sourceforge.net/projects/tarquin/files/TARQUIN_4.3.11/TARQUIN_Linux_4.3.11.tar.gz/download && tar -xzf tarquin.tar.gz -C ../tarquin_folder && rm tarquin.tar.gz
+          mv ../tarquin_folder/TARQUIN_Linux_4.3.11_RC/tarquin /usr/local/bin/tarquin && ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
+
+      - name: Run MRS tests
+        run: |
+          pytest --continue-on-collection-errors tests/
+
+#          # Create virtual environmet & activate
+#          - dicomserver/bin/create_venv.sh ../venv
+#          - source ../venv/bin/activate
+#          # Install requirements
+#          - apt-get update && apt-get install default-libmysqlclient-dev -y
+#          - ../venv/bin/pip3 install --upgrade pip
+#          - ../venv/bin/pip3 install -r requirements.txt
+#          - apt-get update && apt-get install poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
+#          # Install tarquin, move relevant packages into path
+#          - mkdir ../tarquin_folder && wget -O tarquin.tar.gz https://sourceforge.net/projects/tarquin/files/TARQUIN_4.3.11/TARQUIN_Linux_4.3.11.tar.gz/download && tar -xzf tarquin.tar.gz -C ../tarquin_folder && rm tarquin.tar.gz
+#          - mv ../tarquin_folder/TARQUIN_Linux_4.3.11_RC/tarquin /usr/local/bin/tarquin && ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
+#          # Run tests
+#          - pytest --continue-on-collection-errors dicomserver_tests/
