@@ -36,21 +36,18 @@ relevant and should be validated.*
 
 **List of Risks:**
 
-* \<list of risks\>
+See document "./hazard-log.md"
 
 **List of Risk Mitigation Measures (if necessary):**
 
-* \<list possible risk mitigation measures\>
+See document "./hazard-log.md"
 
 ### 4.3 Criticality and Review Schedule
 
 *Refer to section 10 for descriptions of the criticality classifications. If a software is not highly critical
 and widely adopted / commonly used, it can be continuously re-validated during use.*
 
-* **Low** (review upon major changes)
-* **Moderate** (review every year)
-* **High** (review every 6 months)
-
+**Moderate** (review every year)
 ## 5. Validation Plan
 
 ### 5.1 Participants
@@ -61,12 +58,12 @@ and widely adopted / commonly used, it can be continuously re-validated during u
 
 ### 5.2 Test Environment
 
-* Software tool accessed with \<Windows 10 20H2 on Google Chrome 88.0.4324.150\>
-* Reference User Manual
+* Software tool running on Mac OS X 10.11.6 (El Capitan)
 
 ### 5.3 Testing Procedure
 
-* Run software system on sample data
+* Passing data through the software and recording output
+* See document "./verification-validation-plan.md"
 
 ## 6. Validation Report and Requirements
 
@@ -76,38 +73,41 @@ The software is approved for use if it is validated successfully and works as ex
 
 ### 6.2 Validation of Usage Requirements
 
-| ID | Expected                                                         | Result                                                                        | Pass? |
-|----|------------------------------------------------------------------|-------------------------------------------------------------------------------|-------|
-| U1 | e.g. "A radiologist can log in with his/her email and password." | "Login with correct email and password grants access to the annotation tool." | yes   |
-|    |                                                                  |                                                                               |       |
+| ID     | Expected                                                                                              | Result                                                                                           | Pass? |
+|--------|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|-------|
+| SRS001 | The application must integrate with dicomserver in order to receive dicom data from MR Scanners       | The application runs on the dicomserver platofrm and can received data from mr scanners          | Yes   |
+| SRS002 | The application must produce a dicom enscapusulated PDF of the analysis for archiving by dicomserver. | A dicom encapsulate pdf was archived and accessible on PACs                                      | Yes   |
+| SRS003 | The application must be able to return a result within 10 minutes.                                    | Total processing time was recoded as 33 seconds for a representative incoming series (see below) | Yes   |
+| SRS004 | The application must be able to accurately measure the metabolites quantities in MR Spectroscopy data |                                                                                                  | -     |
 
 ### 6.3 Validation of Technical Requirements
 
-| ID | Expected                                                           | Result                                             | Pass? |
-|----|--------------------------------------------------------------------|----------------------------------------------------|-------|
-| T1 | e.g. "Execute correctly in the specified runtime (Google Chrome)." | "The application runs correctly in Google Chrome." | yes   |
-|    |                                                                    |                                                    |       |
+| ID      | Expected                                                                                                                           | Result                                                                                | Pass? |
+|---------|------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|-------|
+| SDS-001 | The software shall be written as a dicomserver plugin.                                                                             | The software inherits from the ProcessTask superclass and integrates with dicomserver | Yes   |
+| SDS-002 | The software shall convert the analysis report into a PDF and use an appropriate library                                           | PDF files are successfully created after processing                                   | Yes   |
+| SDS-003 | The software shall use the (Tarquin)[http://tarquin.sourceforge.net] software to perform the metabolite fitting and quantification | Tarquin is used to process incoming series                                            | Yes   |
+| SDS-004 | The software shall use test data with known metabolite quantities to perform regression and accuracy testing.                      |                                                                                       | -     |
 
 ### 6.4 Summary of Validation
 
 | Type                   | Total | Pass | Fail |
 |------------------------|-------|------|------|
-| Usage Requirements     | 1     | 1    | 0    |
-| Technical Requirements | 1     | 1    | 0    |
+| Usage Requirements     | 4     | 3    | -    |
+| Technical Requirements | 4     | 3    | -    |
 
 ### 6.5 Conclusion
 
-Approving the software for use is recommended due to the acceptance criteria being fulfilled completely.
+ 
 
 ## 7. Proof of Validation
 
 > You can optionally insert screenshots for proof of validation. Strictly speaking, this is not a hard
 > requirement by the standards but it's nice to show when you're being audited.
 
-|    |                       |
-|----|-----------------------|
-| U1 | \<insert screenshot\> |
-| T1 | \<insert screenshot\> |
+|                                   |                          |
+|-----------------------------------|--------------------------|
+| SRS001, SRS003, SDS-001, SDS-003, | ![img_1.png](img_1.png) ![img_2.png](img_2.png) |
 
 ## 8. Approval and Release
 
