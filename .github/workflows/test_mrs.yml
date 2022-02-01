@@ -38,8 +38,9 @@ jobs:
       - name: install python packages
         run: |
           pip install --upgrade pip
-          pip install pytest suspect pytest-cov 
+          pip install pytest suspect pytest-cov colorlog
           pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
+          pip install -r /path/to/requirements.txt
 
       - name: Install Tarquin
         run: |
