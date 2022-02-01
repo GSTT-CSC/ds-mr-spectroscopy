@@ -26,21 +26,21 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.6
+
+      - name: setup virtual environment
+        run: |
+          python3.6 -m venv env
+          source ./env/bin/activate
+          echo "VIRTUAL ENV:" $VIRTUAL_ENV
+          pip install --upgrade pip
 
       - name: Install system requirements
         run: |
           sudo apt-get update
           sudo apt-get install default-libmysqlclient-dev poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
-
-      - name: setup virtual environment
-        run: |
-          pip install --upgrade pip
-          python -m venv env
-          source env/bin/activate
-          echo "VIRTUAL ENV:" $VIRTUAL_ENV
 
       - name: install python packages
         run: |
