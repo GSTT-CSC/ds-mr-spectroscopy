@@ -37,12 +37,13 @@ jobs:
 
       - name: setup virtual environment
         run: |
-          python3 -m venv mrs_venv
-          source mrs_venv/bin/activate
+          pip install --upgrade pip
+          python3 -m venv env
+          source env/bin/activate
+          echo "VIRTUAL ENV:" $VIRTUAL_ENV
 
       - name: install python packages
         run: |
-          pip install --upgrade pip
           pip install pytest suspect pytest-cov colorlog pymsteams appdirs
           pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
 
