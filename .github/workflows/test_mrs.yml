@@ -37,11 +37,7 @@ jobs:
 
       - name: install dicomserver
         run: |
-          git clone https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git
-          git clone git@bitbucket.org:gsttmri/dicomserver.git ../dicomserver --branch master
-          pip install --upgrade pip
-          pip install -r ../dicomserver/requirements.txt
-          python ../dicomserver/setup.py install
+          pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
 
       - name: Install Tarquin
         run: |
