@@ -54,7 +54,7 @@ jobs:
 
       - name: Run MRS tests
         run: |
-          pytest --continue-on-collection-errors tests/
+          python -m pytest --continue-on-collection-errors tests/
 
 #          # Create virtual environmet & activate
 #          - dicomserver/bin/create_venv.sh ../venv
