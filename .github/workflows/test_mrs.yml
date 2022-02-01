@@ -35,7 +35,7 @@ jobs:
           python3.6 -m venv env
           source ./env/bin/activate
           echo "VIRTUAL ENV:" $VIRTUAL_ENV
-          pip install --upgrade pip
+          python3.6 -m pip install --upgrade pip
 
       - name: Install system requirements
         run: |
@@ -44,8 +44,8 @@ jobs:
 
       - name: install python packages
         run: |
-          pip install pytest suspect pytest-cov colorlog pymsteams appdirs
-          pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
+          python3.6 -m pip install pytest suspect pytest-cov colorlog pymsteams appdirs
+          python3.6 -m pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
 
       - name: Install Tarquin
         run: |
@@ -54,7 +54,7 @@ jobs:
 
       - name: Run MRS tests
         run: |
-          python -m pytest --continue-on-collection-errors tests/
+          python3.6 -m pytest --continue-on-collection-errors tests/
 
 #          # Create virtual environmet & activate
 #          - dicomserver/bin/create_venv.sh ../venv
