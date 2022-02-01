@@ -35,9 +35,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install default-libmysqlclient-dev poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
 
-      - name: install dicomserver
+      - name: install python packages
         run: |
           pip install --upgrade pip
+          pip install pytest suspect pytest-cov 
           pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
 
       - name: Install Tarquin
