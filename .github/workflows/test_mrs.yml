@@ -38,7 +38,6 @@ jobs:
       - name: install python packages
         run: |
           pip install --upgrade pip
-#         install packages that are required by dicomserver but not currently installed through pip
           pip install pytest suspect pytest-cov colorlog pymsteams appdirs
           pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
 
