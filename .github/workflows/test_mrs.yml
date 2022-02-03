@@ -52,7 +52,7 @@ jobs:
 
       - name: install dicomserver with clone
         run: |
-          git clone git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
+          git clone https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
           tree -L 2 dicomserver
 
       - name: Install Tarquin
