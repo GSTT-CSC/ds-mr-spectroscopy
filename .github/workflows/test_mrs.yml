@@ -46,9 +46,10 @@ jobs:
       - name: install python packages
         run: |
           source ./env/bin/activate
-          which dicomserver
           python3.6 -m pip install pytest suspect pytest-cov colorlog pymsteams appdirs pynetdicom
           python3.6 -m pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
+          which dicomserver
+
 
       - name: Install Tarquin
         run: |
