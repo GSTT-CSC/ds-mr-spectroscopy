@@ -15,7 +15,7 @@ from dicomserver.config import SETTINGS
 MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'mrs')
 os.makedirs(MRS_DATA_DIR, exist_ok=True)
 
-class TestPhilipsMRSStudy(unittest.TestCase):
+class TestPhilipsMRSStudy_0_10_7(unittest.TestCase):
 
     def setUp(self):
         self.philips_patient_mrs_2j1s = Study(study_dir=os.path.join(MRS_DATA_DIR, 'philips/two_jobs_one_study'))
@@ -38,7 +38,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         # Create processing object
         self.qa_process = MRSTask(study=mrs_dti_qa)
 
-    def testTwoJobsOneStudy(self):
+    def testTwoJobsOneStudy_0_10_7(self):
         res_dir = os.path.join(SETTINGS['dicomserver']['data_dir'], 'mrs', '1234A', '20190205')
         try:
             shutil.rmtree(res_dir)
@@ -48,7 +48,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         N_res = len([i for i in os.listdir(res_dir) if os.path.isdir(os.path.join(res_dir, i))])
         assert N_res == 2
 
-    def testRawAndMRSStudy(self):
+    def testRawAndMRSStudy_0_10_7(self):
         res_dir = os.path.join(SETTINGS['dicomserver']['data_dir'], 'mrs', 'MRS_DTI_QA', '20180404')
         try:
             shutil.rmtree(res_dir)
@@ -58,17 +58,17 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         N_res = len([i for i in os.listdir(res_dir) if os.path.isdir(os.path.join(res_dir, i))])
         assert N_res == 1
 
-    def testValidPhilipsMRS(self):
+    def testValidPhilipsMRS_0_10_7(self):
         log.info('testValidPhilipsMRS')
         assert self.philips_patient_mrs.valid is True
         assert self.philips_QA_mrs.valid is True
 
-    def testValidRawAndMRS(self):
+    def testValidRawAndMRS_0_10_7(self):
         log.info('testValidRawAndMRS')
 
         assert self.qa_process.valid is True
 
-    def testProcessSinglePhilipsMRSDicom(self):
+    def testProcessSinglePhilipsMRSDicom_0_10_7(self):
         log.info('testProcessSinglePhilipsMRSDicom')
         mrs_job = build_job(self.philips_patient_mrs_process_task)
         assert mrs_job.mrs_process_job()
@@ -76,7 +76,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         mrs_job.job_results_dir,
            '1234567A_20160531_MRS_shortTE_LN_BG__Tarquin_Output-1.png'))
 
-    def testProcessSinglePhilipsMRSQADicom(self):
+    def testProcessSinglePhilipsMRSQADicom_0_10_7(self):
         log.info('testProcessSinglePhilipsMRSQADicom')
         mrs_job = build_job(self.philips_QA_mrs_process_task)
         assert mrs_job.mrs_process_job()
@@ -86,7 +86,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
 
 
 
-    def testMissingPulseSequenceTag(self):
+    def testMissingPulseSequenceTag_0_10_7(self):
         log.info('testMissingPulseSequenceTag')
 
         del self.philips_patient_mrs_process_task._study.series_list[0].dicom_list[0].PulseSequenceName
@@ -101,7 +101,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         assert self.philips_patient_mrs_process_task.report() == "file://" + os.path.join(self.philips_patient_mrs_process_task.result_directory, 'MRS_shortTE_LN__BG__chart.html')
 
 
-class TestSiemensMRSStudy(unittest.TestCase):
+class TestSiemensMRSStudy_0_10_7(unittest.TestCase):
 
     def setUp(self):
         log.info('Setting up Siemens MRS Test studies and tasks')
@@ -134,7 +134,7 @@ class TestSiemensMRSStudy(unittest.TestCase):
         self.siemens_mrs_patPO = Study(study_dir=os.path.join(MRS_DATA_DIR, 'siemens/pat_data_sv/PO'))
         self.siemens_mrs_patPO_task = MRSTask(study=self.siemens_mrs_patPO)
 
-    def testValidSiemensQAMRS(self):
+    def testValidSiemensQAMRS_0_10_7(self):
         log.info('testValidSiemensQAMRS')
         assert self.siemens_nonmrs_task.is_qa is False
         # assert self.siemens_mrs_qa_old_task.is_qa is True
@@ -144,7 +144,7 @@ class TestSiemensMRSStudy(unittest.TestCase):
         assert self.siemens_mrs_qa_4_task.is_qa is True
         assert self.siemens_mrs_patPO_task.is_qa is False
 
-    def testMRSProcessSiemensQAMRS(self):
+    def testMRSProcessSiemensQAMRS_0_10_7(self):
         log.info("testMRSProcessSiemensQAMRS")
 
         mrs_job = build_job(self.siemens_mrs_qa_2_task)
@@ -156,11 +156,11 @@ class TestSiemensMRSStudy(unittest.TestCase):
         mrs_job = build_job(self.siemens_mrs_qa_3_task)
         assert mrs_job.mrs_process_job()
 
-    def testValidSiemensNonMRS(self):
+    def testValidSiemensNonMRS_0_10_7(self):
         log.info("testValidSiemensNonMRS")
         assert self.siemens_nonmrs_task.valid is False
 
-    def testMRSProcessSiemensMRS(self):
+    def testMRSProcessSiemensMRS_0_10_7(self):
         log.info('testMRSProcessSiemensMRS')
         mrs_job = build_job(self.siemens_mrs_patPO_task)
         assert mrs_job.mrs_process_job()
