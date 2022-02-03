@@ -71,6 +71,7 @@ jobs:
       - name: Run MRS tests
         run: |
           source ./env/bin/activate
+          pwd
           python3.6 -m pytest --continue-on-collection-errors tests/
 
 #          # Create virtual environmet & activate
