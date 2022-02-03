@@ -15,6 +15,7 @@ from dicomserver.config import SETTINGS
 MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'mrs')
 os.makedirs(MRS_DATA_DIR, exist_ok=True)
 
+
 class TestPhilipsMRSStudy_0_10_7(unittest.TestCase):
 
     def setUp(self):
