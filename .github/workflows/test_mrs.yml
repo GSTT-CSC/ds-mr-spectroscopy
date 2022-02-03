@@ -46,14 +46,8 @@ jobs:
       - name: install python packages
         run: |
           source ./env/bin/activate
-          python3.6 -m pip install wheel pytest suspect pytest-cov colorlog pymsteams appdirs pynetdicom
+          python3.6 -m pip install -r requirements.txt
           python3.6 -m pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
-          tree 
-
-      - name: install dicomserver with clone
-        run: |
-          git clone https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
-          tree -L 2 dicomserver
 
       - name: Install Tarquin
         run: |
