@@ -59,10 +59,10 @@ jobs:
           source ./env/bin/activate
           python3 -c "import sys; print('post activate python3 sys.prefix' + sys.prefix)"
           python3 -c "import sys; print('post activate python3 sys.base_prefix: ' + sys.base_prefix)"
- 
 
       - name: Run MRS tests
         run: |
+          source ./env/bin/activate
           python3.6 -m pytest --continue-on-collection-errors tests/
 
 #          # Create virtual environmet & activate
