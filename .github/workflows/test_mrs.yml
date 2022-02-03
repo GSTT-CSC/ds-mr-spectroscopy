@@ -41,7 +41,11 @@ jobs:
         run: |
           source ./env/bin/activate
           sudo apt-get update
-          sudo apt-get install tree default-libmysqlclient-dev poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
+          sudo apt-get install default-libmysqlclient-dev poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
+          gs --version
+          sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
+#           https://stackoverflow.com/questions/52998331/imagemagick-security-policy-pdf-blocking-conversion
+          
 
       - name: install python packages
         run: |
