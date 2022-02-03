@@ -39,16 +39,19 @@ jobs:
 
       - name: Install system requirements
         run: |
+          source ./env/bin/activate
           sudo apt-get update
           sudo apt-get install default-libmysqlclient-dev poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
 
       - name: install python packages
         run: |
+          source ./env/bin/activate
           python3.6 -m pip install pytest suspect pytest-cov colorlog pymsteams appdirs
           python3.6 -m pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
 
       - name: Install Tarquin
         run: |
+          source ./env/bin/activate
           mkdir ../tarquin_folder && wget -O tarquin.tar.gz https://sourceforge.net/projects/tarquin/files/TARQUIN_4.3.11/TARQUIN_Linux_4.3.11.tar.gz/download && tar -xzf tarquin.tar.gz -C ../tarquin_folder && rm tarquin.tar.gz
           mv ../tarquin_folder/TARQUIN_Linux_4.3.11_RC/tarquin /usr/local/bin/tarquin && ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
 
