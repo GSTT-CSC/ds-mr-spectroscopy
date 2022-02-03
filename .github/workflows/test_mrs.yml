@@ -50,7 +50,7 @@ jobs:
         run: |
           source ./env/bin/activate
           python3.6 -m pip install -r requirements.txt
-          python3.6 -m pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
+          python3.6 -m pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.10.7
 
       - name: GA fixes # https://github.com/actions/virtual-environments/issues/4799
         run: |
