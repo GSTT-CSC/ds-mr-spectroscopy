@@ -45,7 +45,6 @@ jobs:
           gs --version
           sudo sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
 #           https://stackoverflow.com/questions/52998331/imagemagick-security-policy-pdf-blocking-conversion
-          
 
       - name: install python packages
         run: |
