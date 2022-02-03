@@ -13,7 +13,8 @@ from dicomserver.dicom import Series, Study, Dicom
 from dicomserver.config import SETTINGS
 from dicomserver.config.config import APP_DATA_DIR
 
-TEST_DATA_DIR = 'tests'
+
+TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
 
 MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'data', 'mrs')
 os.makedirs(MRS_DATA_DIR, exist_ok=True)
