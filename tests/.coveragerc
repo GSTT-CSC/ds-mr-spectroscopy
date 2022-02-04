@@ -1,0 +1,14 @@
+[report]
+omit =
+
+    */etc/*
+
+exclude_lines =
+
+    pragma: no cover
+
+    except Exception
+
+    except log.
+
+    if __name__ == "__main__":

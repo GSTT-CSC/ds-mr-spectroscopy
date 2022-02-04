@@ -71,6 +71,10 @@ jobs:
           python3 -c "import sys; print('post activate python3 sys.prefix' + sys.prefix)"
           python3 -c "import sys; print('post activate python3 sys.base_prefix: ' + sys.base_prefix)"
 
+      - name: print tree for system
+        run: |
+          tree
+
       - name: Run MRS tests
         run: |
           source ./env/bin/activate
