@@ -31,4 +31,4 @@ SimpleITK==2.0.2
 torch==1.8.1
 torchvision==0.9.1
 monai==0.4.0
-pytest-coverage==3.0.0
+pytest-cov
