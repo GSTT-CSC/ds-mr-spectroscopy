@@ -200,7 +200,7 @@ class TestSiemensMRSStudy(unittest.TestCase):
         log.info('testSiemensMRSXA20Pipeline')
 
         # Delete previous results directory
-        tmp_path = os.path.join(APP_DATA_DIR, 'data/mrs', 'GSTTQA')
+        tmp_path = os.path.join(APP_DATA_DIR, 'mrs', 'GSTTQA')
         if os.path.exists(tmp_path):
             shutil.rmtree(tmp_path)
 
