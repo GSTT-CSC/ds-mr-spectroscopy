@@ -15,7 +15,7 @@ from dicomserver.config import SETTINGS
 from dicomserver.config.config import APP_DATA_DIR
 
 
-MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'data', 'mrs')
+MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'mrs')
 os.makedirs(MRS_DATA_DIR, exist_ok=True)
 
 
