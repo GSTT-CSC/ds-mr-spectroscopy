@@ -15,7 +15,7 @@ from dicomserver.config import SETTINGS
 from dicomserver.config.config import APP_DATA_DIR
 
 
-MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'mrs')
+MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'data', 'mrs')
 os.makedirs(MRS_DATA_DIR, exist_ok=True)
 
 
@@ -62,7 +62,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
 
 
     def testTwoJobsOneStudy(self):
-        res_dir = os.path.join(SETTINGS['dicomserver']['data_dir'], 'data/mrs', '1234A', '20190205')
+        res_dir = os.path.join(SETTINGS['dicomserver']['data_dir'], 'mrs', '1234A', '20190205')
         try:
             shutil.rmtree(res_dir)
         except:
@@ -73,7 +73,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
 
 
     def testRawAndMRSStudy(self):
-        res_dir = os.path.join(SETTINGS['dicomserver']['data_dir'], 'data/mrs', 'MRS_DTI_QA', '20180404')
+        res_dir = os.path.join(SETTINGS['dicomserver']['data_dir'], 'mrs', 'MRS_DTI_QA', '20180404')
         try:
             shutil.rmtree(res_dir)
         except:
