@@ -2,13 +2,11 @@
 
 name: Test MRS
 
-# Controls when the workflow will run
+
+name: Tests on production branches
+
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -71,26 +69,17 @@ jobs:
           python3 -c "import sys; print('post activate python3 sys.prefix' + sys.prefix)"
           python3 -c "import sys; print('post activate python3 sys.base_prefix: ' + sys.base_prefix)"
 
-      - name: print tree for system
-        run: |
-          tree
-
       - name: Run MRS tests
         run: |
           source ./env/bin/activate
           pwd
           python3.6 -m pytest --continue-on-collection-errors tests/
+          set -o pipefail
+          pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered tests/ | tee pytest-coverage.txt ; echo $?
 
-#          # Create virtual environmet & activate
-#          - dicomserver/bin/create_venv.sh ../venv
-#          - source ../venv/bin/activate
-#          # Install requirements
-#          - apt-get update && apt-get install default-libmysqlclient-dev -y
-#          - ../venv/bin/pip3 install --upgrade pip
-#          - ../venv/bin/pip3 install -r requirements.txt
-#          - apt-get update && apt-get install poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
-#          # Install tarquin, move relevant packages into path
-#          - mkdir ../tarquin_folder && wget -O tarquin.tar.gz https://sourceforge.net/projects/tarquin/files/TARQUIN_4.3.11/TARQUIN_Linux_4.3.11.tar.gz/download && tar -xzf tarquin.tar.gz -C ../tarquin_folder && rm tarquin.tar.gz
-#          - mv ../tarquin_folder/TARQUIN_Linux_4.3.11_RC/tarquin /usr/local/bin/tarquin && ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
-#          # Run tests
-#          - pytest --continue-on-collection-errors dicomserver_tests/
+      - name: Pytest coverage
+        id: coverageComment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
