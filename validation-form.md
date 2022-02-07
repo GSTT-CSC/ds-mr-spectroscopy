@@ -2,15 +2,15 @@
 
 ## 1. Information about the Software
 
-|           |                                          |
-|-----------|------------------------------------------|
-| QMS ID    | \<0018\>                                 |
-| Name      | \<MRSpectroscopy\>                       |
-| Version   | \<1.0.0\>                                |
-| Location  | \<https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy\>                                  |
+|           |                                                         |
+|-----------|---------------------------------------------------------|
+| QMS ID    | \<0018\>                                                |
+| Name      | \<MRSpectroscopy\>                                      |
+| Version   | \<1.0.0\>                                               |
+| Location  | \<https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy\> |
 
 ## 2. Intended Use and Use Context
-This software is a dicomserver plugin that is used to automatically analyse MR Spectroscopy data and create a dicom encapsualated PDF of the results and send them
+This software is a dicomserver plugin that is used to automatically analyse MR Spectroscopy data and create a dicom encapsulated PDF of the results and send them
 to PACS.
 
 ## 3. Quality Relevance
@@ -52,9 +52,10 @@ and widely adopted / commonly used, it can be continuously re-validated during u
 
 ### 5.1 Participants
 
-| Role | Name | Task(s) |
-|------|------|---------|
-|      |      |         |
+| Role             | Name              | Task(s)                                                                                                                        |
+|------------------|-------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| Development lead | Laurence Jackson  | Responsible for the completion of all verification and validation activities defined in the validation and verification plans. |
+| QMO              | Haris Shuaib      | Review validation and approve release                                                                                          |
 
 ### 5.2 Test Environment
 
@@ -75,8 +76,8 @@ The software is approved for use if it is validated successfully and works as ex
 
 | ID     | Expected                                                                                              | Result                                                                                           | Pass? |
 |--------|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|-------|
-| SRS001 | The application must integrate with dicomserver in order to receive dicom data from MR Scanners       | The application runs on the dicomserver platofrm and can received data from mr scanners          | Yes   |
-| SRS002 | The application must produce a dicom enscapusulated PDF of the analysis for archiving by dicomserver. | A dicom encapsulate pdf was archived and accessible on PACs                                      | Yes   |
+| SRS001 | The application must integrate with dicomserver in order to receive dicom data from MR Scanners       | The application runs on the dicomserver platform and can received data from mr scanners          | Yes   |
+| SRS002 | The application must produce a dicom encapsulated PDF of the analysis for archiving by dicomserver.   | A dicom encapsulate pdf was archived and accessible on PACs                                      | Yes   |
 | SRS003 | The application must be able to return a result within 10 minutes.                                    | Total processing time was recoded as 33 seconds for a representative incoming series (see below) | Yes   |
 | SRS004 | The application must be able to accurately measure the metabolites quantities in MR Spectroscopy data |                                                                                                  | -     |
 
@@ -103,25 +104,15 @@ The software is approved for use if it is validated successfully and works as ex
 ## 7. Proof of Validation
 
 > You can optionally insert screenshots for proof of validation. Strictly speaking, this is not a hard
-> requirement by the standards but it's nice to show when you're being audited.
+> requirement by the standards, but it's nice to show when you're being audited.
 
-|                                   |                          |
-|-----------------------------------|--------------------------|
+|                                   |                                                 |
+|-----------------------------------|-------------------------------------------------|
 | SRS001, SRS003, SDS-001, SDS-003, | ![img_1.png](img_1.png) ![img_2.png](img_2.png) |
 
-## 8. Approval and Release
 
-| **Date of Approval** | **Name of Approver** |
-|----------------------|----------------------|
-| \<date\>             | \<name\>             |
 
-## 9. History
-
-| Date | Name | Activity             |
-|------|------|----------------------|
-|      |      | \<Initial Approval\> |
-
-## 10. Annex: Additional Information for Criticality Classification
+## 8. Annex: Additional Information for Criticality Classification
 
 **Criticality High**
 
