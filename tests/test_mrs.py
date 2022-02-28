@@ -85,14 +85,14 @@ class TestPhilipsMRSStudy(unittest.TestCase):
 
     def testValidPhilipsMRS(self):
         log.info('testValidPhilipsMRS')
-        assert self.philips_patient_mrs.valid is True
-        assert self.philips_QA_mrs.valid is True
+        assert valid is True
+        assert valid is True
 
 
     def testValidRawAndMRS(self):
         log.info('testValidRawAndMRS')
 
-        assert self.qa_process.valid is True
+        assert valid is True
 
 
     def testProcessSinglePhilipsMRSDicom(self):
@@ -120,7 +120,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         del self.philips_patient_mrs_process_task._study.series_list[0].dicom_list[0].PulseSequenceName
 
         with pytest.raises(InvalidInputData):
-            _ = self.philips_patient_mrs_process_task.valid
+            _ = valid
 
 
     @pytest.mark.skip
@@ -189,7 +189,7 @@ class TestSiemensMRSStudy(unittest.TestCase):
 
     def testValidSiemensNonMRS(self):
         log.info("testValidSiemensNonMRS")
-        assert self.siemens_nonmrs_task.valid is False
+        assert valid is False
 
     def testMRSProcessSiemensMRS(self):
         log.info('testMRSProcessSiemensMRS')
@@ -206,7 +206,7 @@ class TestSiemensMRSStudy(unittest.TestCase):
 
         # Test MRSTask is valid
         self.vida_svs_se_all_task = MRSTask(study=self.vida_svs_se_all)
-        assert self.vida_svs_se_all_task.valid is True
+        assert valid is True
 
         # Run MRSTask jobs
         self.vida_svs_se_all_task.process()

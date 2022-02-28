@@ -1,0 +1,7 @@
+{
+  "model_description": "Magnetic Resonance Spectroscopy using Tarquin",
+  "predicate": "DICOM_Manufacturer == 'Philips Medical Systems' OR DICOM_Manufacturer == 'Siemens'",
+  "mode": "QA",
+  "model_name": "mrs-tarquin",
+  "model_version": "0.1.0"
+}
