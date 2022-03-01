@@ -1,15 +1,29 @@
 import os
+import pandas as pd
+import subprocess
+import datetime
+
+from mrs.tools.tools import calc_mean_xcorr, identify_siemens_mrs_series_type, is_mrs
+from mrs.processing.MRSJob import MRSJob
+from mrs.reporting.MRSNormalChart import MRSNormalChart, Chart
+from mrs.reporting.MRSLayout import MRSLayout
+from aide_sdk.logger.logger import LogManager
+from config.config import SETTINGS, APP_DATA_DIR
 
 
-class MRSTask(ProcessTask):
+log = LogManager.get_logger()
+
+
+class MRSTask:
+
     """
     This is the top-level MRS processing class. It is given a DICOM Study object.
     It then groups the series in the Study into the relevant groupings associated with a single MRS processing 'job'.
     It will then make an MRSJob object for each one and call the process method of the MRSJob.
     """
-    mrs_app_dir = join(APP_DATA_DIR, 'mrs')
-    qa_dir = join(mrs_app_dir, 'qa_results')
-    qa_db_full_filename = join(qa_dir, 'qa_res.csv')
+    mrs_app_dir = os.path.join(APP_DATA_DIR)
+    qa_dir = os.path.join(mrs_app_dir, 'qa_results')
+    qa_db_full_filename = os.path.join(qa_dir, 'qa_res.csv')
 
     def __init__(self, study: Study):
         super(MRSTask, self).__init__(study=study, name='MRS')
@@ -20,17 +34,6 @@ class MRSTask(ProcessTask):
     def is_qa(self):
         if ('MRS' in self.study.subject_name) and ('QA' in self.study.subject_name):
             return True
-        else:
-            return False
-
-    @property
-    def valid(self) -> bool:
-        log.debug('Checking validity of {self._study} for {self} - returns true if Study has an MRS in it.'.format(
-            **locals()))
-        for series in self.study.series_list:
-            for dcm in series.dicom_list:
-                if is_mrs(dcm):
-                    return True
         else:
             return False
 
@@ -104,9 +107,9 @@ class MRSTask(ProcessTask):
             log.debug(f'Item: {item}')
 
             if 'Tarquin_Output' in item and '.dcm' in item:
-                log.debug(f'Tarquin DICOM output: {join(mrs_job.job_results_dir, item)}')
+                log.debug(f'Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
 
-                a = self.archive_pacs(join(mrs_job.job_results_dir, item))
+                a = self.archive_pacs(os.path.join(mrs_job.job_results_dir, item))
                 log.debug(a)
         return
 
@@ -129,7 +132,7 @@ class MRSTask(ProcessTask):
             # attached inline of the message.
 
             if item.endswith('.png'):
-                report = join(mrs_job.job_results_dir, item)
+                report = os.path.join(mrs_job.job_results_dir, item)
                 reports.append(report)
 
         try:
@@ -198,7 +201,7 @@ class MRSTask(ProcessTask):
                         tmp.append(dcm)
 
                 if tmp:
-                    mrs_list.append(Series(dicom_list=tmp))
+                    mrs_list.append(Series(images=tmp))
 
             if self.is_qa is True:
                 # If this is a QA study, usually only one 'job' - i.e. if Philips, single DICOM; if Siemens, two DICOMs (acq and water ref)

@@ -4,9 +4,20 @@ import os
 import shutil
 import suspect
 import subprocess
+import glob
+import csv
+import datetime
+import pydicom as pyd
+
+from config.config import SETTINGS
+
+from PIL import Image
+from mrs.tools.tools import get_te_ms, get_voxel_size, identify_siemens_mrs_series_type, fwhm, make_qa_plots, analysis
+from aide_sdk.logger.logger import LogManager
+from aide_sdk.model.dicom_series import DicomSeries
 
 
-from mrs.tools.tools import get_te_ms, get_voxel_size, identify_siemens_mrs_series_type
+log = LogManager.get_logger()
 
 
 class MRSJob:
@@ -25,8 +36,8 @@ class MRSJob:
         self.clean_job_name = ''
         self.output_filename_root = ''
         self.job_results_dir = ''
-        self.water_sup_series: Series = []
-        self.water_ref_series: Series = []
+        self.water_sup_series = None
+        self.water_ref_series = None
         self.png_filename = ''
 
     def mrs_process_job(self) -> bool:

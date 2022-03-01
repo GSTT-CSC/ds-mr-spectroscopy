@@ -12,6 +12,8 @@ import numpy as np
 
 from mrs.tools.exceptions import InvalidInputData
 from aide_sdk.logger.logger import LogManager
+from aide_sdk.model.dicom_series import DicomSeries
+
 
 log = LogManager.get_logger()
 
@@ -36,7 +38,7 @@ def calc_mean_xcorr(patient: pd.DataFrame, normal_list: list):  # pragma: no cov
 
 def check_valid_mrs(context) -> bool:
     for series in context.origin.series:
-        for dcm in series.dicom_list:
+        for dcm in series.images:
             if is_mrs(dcm):
                 return True
     else:
@@ -110,7 +112,7 @@ def is_mrs(dcm) -> bool:
     return False
 
 
-def get_voxel_size(series: Series):
+def get_voxel_size(series: DicomSeries):
     log.debug('Running get_voxel_size function')
 
     dcm = series.dicom_list[0]
@@ -120,10 +122,10 @@ def get_voxel_size(series: Series):
 
         try:
             vox_x = str(
-                series.dicom_list[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[0])
+                series.images[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[0])
             vox_y = str(
-                series.dicom_list[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[1])
-            vox_z = str(series.dicom_list[0].VolumeLocalizationSequence[0].SlabThickness)
+                series.images[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[1])
+            vox_z = str(series.images[0].VolumeLocalizationSequence[0].SlabThickness)
         except Exception:
             log.warning('Philips: Did not find voxel sizes')
             raise ValueError
@@ -152,14 +154,14 @@ def get_voxel_size(series: Series):
     return vox
 
 
-def get_tf_mhz(series: Series):
+def get_tf_mhz(series: DicomSeries):
     log.debug('Running get_tf_mhz function to get the transmitter frequency in MHz')
 
-    dcm = series.dicom_list[0]
+    dcm = series.images[0]
     tf = 0.
     if dcm.Manufacturer == 'Philips Medical Systems':
         try:
-            tf = series.dicom_list[0].TransmitterFrequency
+            tf = series.images[0].TransmitterFrequency
         except Exception:
             log.warning('Philips: Did not find tf')
             raise ValueError
@@ -170,10 +172,10 @@ def get_tf_mhz(series: Series):
     return tf
 
 
-def get_te_ms(series: Series):
+def get_te_ms(series: DicomSeries):
     log.debug('Running get_te_ms function')
 
-    dcm = series.dicom_list[0]
+    dcm = series.images[0]
     n_digits = 2
 
     te_ms = ''
@@ -181,7 +183,7 @@ def get_te_ms(series: Series):
 
         try:
             te_ms = str(
-                round(series.dicom_list[0].PerFrameFunctionalGroupsSequence[0].MREchoSequence[0].EffectiveEchoTime,
+                round(series.images[0].PerFrameFunctionalGroupsSequence[0].MREchoSequence[0].EffectiveEchoTime,
                       n_digits))
         except Exception:
             log.warning('Philips: Did not find TE')

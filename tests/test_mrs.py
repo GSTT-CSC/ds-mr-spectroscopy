@@ -5,14 +5,13 @@ import shutil
 import glob
 import suspect
 
-
-from dicomserver.logger import log
-from dicomserver.exceptions import InvalidInputData
-from tests import TEST_DATA_DIR
-from dicomserver.processing.mrs import MRSTask, MRSJob
-from dicomserver.dicom import Series, Study, Dicom
-from dicomserver.config import SETTINGS
-from dicomserver.config.config import APP_DATA_DIR
+# from dicomserver.logger import log
+# from dicomserver.exceptions import InvalidInputData
+# from tests import TEST_DATA_DIR
+# from dicomserver.processing.mrs import MRSTask, MRSJob
+# from dicomserver.dicom import Series, Study, Dicom
+# from dicomserver.config import SETTINGS
+# from dicomserver.config.config import APP_DATA_DIR
 
 
 MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'mrs')
