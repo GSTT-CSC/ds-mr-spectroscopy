@@ -1,7 +1,7 @@
 import os
 import datetime
 import re
-
+import sys
 import matplotlib.pyplot as pyp
 import pandas as pd
 import numpy as np
@@ -11,9 +11,9 @@ import numpy as np
 # from dicomserver.exceptions import InvalidInputData
 
 from mrs.tools.exceptions import InvalidInputData
+from config.config import SETTINGS
 from aide_sdk.logger.logger import LogManager
-from aide_sdk.model.dicom_series import DicomSeries
-
+from mrs.dicom.series import Series
 
 log = LogManager.get_logger()
 
@@ -112,7 +112,7 @@ def is_mrs(dcm) -> bool:
     return False
 
 
-def get_voxel_size(series: DicomSeries):
+def get_voxel_size(series: Series):
     log.debug('Running get_voxel_size function')
 
     dcm = series.dicom_list[0]
@@ -122,10 +122,10 @@ def get_voxel_size(series: DicomSeries):
 
         try:
             vox_x = str(
-                series.images[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[0])
+                series.dicom_list[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[0])
             vox_y = str(
-                series.images[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[1])
-            vox_z = str(series.images[0].VolumeLocalizationSequence[0].SlabThickness)
+                series.dicom_list[0].PerFrameFunctionalGroupsSequence[0].PixelMeasuresSequence[0].PixelSpacing[1])
+            vox_z = str(series.dicom_list[0].VolumeLocalizationSequence[0].SlabThickness)
         except Exception:
             log.warning('Philips: Did not find voxel sizes')
             raise ValueError
@@ -154,14 +154,14 @@ def get_voxel_size(series: DicomSeries):
     return vox
 
 
-def get_tf_mhz(series: DicomSeries):
+def get_tf_mhz(series: Series):
     log.debug('Running get_tf_mhz function to get the transmitter frequency in MHz')
 
-    dcm = series.images[0]
+    dcm = series.dicom_list[0]
     tf = 0.
     if dcm.Manufacturer == 'Philips Medical Systems':
         try:
-            tf = series.images[0].TransmitterFrequency
+            tf = series.dicom_list[0].TransmitterFrequency
         except Exception:
             log.warning('Philips: Did not find tf')
             raise ValueError
@@ -172,10 +172,10 @@ def get_tf_mhz(series: DicomSeries):
     return tf
 
 
-def get_te_ms(series: DicomSeries):
+def get_te_ms(series: Series):
     log.debug('Running get_te_ms function')
 
-    dcm = series.images[0]
+    dcm = series.dicom_list[0]
     n_digits = 2
 
     te_ms = ''
@@ -183,7 +183,7 @@ def get_te_ms(series: DicomSeries):
 
         try:
             te_ms = str(
-                round(series.images[0].PerFrameFunctionalGroupsSequence[0].MREchoSequence[0].EffectiveEchoTime,
+                round(series.dicom_list[0].PerFrameFunctionalGroupsSequence[0].MREchoSequence[0].EffectiveEchoTime,
                       n_digits))
         except Exception:
             log.warning('Philips: Did not find TE')
@@ -329,3 +329,7 @@ def identify_siemens_mrs_series_type(series) -> str:
             else:
                 raise Exception('Could not find sPrepPulses.ucWaterSat in dicom file')
     return mrs_series_type
+
+# if we are testing and not running then use different config file
+def is_under_test() -> bool:
+    return 'pytest' in sys.modules

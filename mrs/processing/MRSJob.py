@@ -8,13 +8,16 @@ import glob
 import csv
 import datetime
 import pydicom as pyd
+import copy
+import PyPDF2
 
 from config.config import SETTINGS
-
+from mrs import VERSION
 from PIL import Image
-from mrs.tools.tools import get_te_ms, get_voxel_size, identify_siemens_mrs_series_type, fwhm, make_qa_plots, analysis
+import mrs.tools.myemail as myemail
+from mrs.dicom.series import Series
+from mrs.tools.tools import get_te_ms, get_voxel_size, identify_siemens_mrs_series_type, fwhm, make_qa_plots, analysis, get_tf_mhz
 from aide_sdk.logger.logger import LogManager
-from aide_sdk.model.dicom_series import DicomSeries
 
 
 log = LogManager.get_logger()
@@ -36,8 +39,8 @@ class MRSJob:
         self.clean_job_name = ''
         self.output_filename_root = ''
         self.job_results_dir = ''
-        self.water_sup_series = None
-        self.water_ref_series = None
+        self.water_sup_series: Series = []
+        self.water_ref_series: Series = []
         self.png_filename = ''
 
     def mrs_process_job(self) -> bool:
@@ -491,6 +494,7 @@ class MRSJob:
 
         # Suppressed Spectrum
         data_raw = np.array(self.water_sup_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
+
         data_complex = data_raw[0::2] + 1j * data_raw[1::2]
         data_complex = data_complex[n_reject:-n_reject]
         data_complex = np.pad(data_complex, (0, n_pad_factor * data_complex.size), 'constant', constant_values=0)
@@ -538,16 +542,6 @@ class MRSJob:
         ace_fwhm = fwhm(f_axis_hz_wr, abs(data))
         h2o_snr = h2o_sig / std_h20
         ace_snr = ace_sig / std_ace
-
-        # Plot
-        # pyp.plot(f_axis_ppm,np.abs(data))
-        # pyp.xlim(0, 6)
-        # pyp.savefig('/Users/franpadormo/Desktop/tmp4.png')
-        # pyp.clf()
-
-        # pyp.plot(f_axis_ppm_wr,np.abs(data_wr))
-        # pyp.xlim(0, 6)
-        # pyp.savefig('/Users/franpadormo/Desktop/tmp5.png')
 
         res_v = np.array([h2o_snr, ace_snr, h2o_loc, ace_loc, h2o_fwhm, ace_fwhm])
 

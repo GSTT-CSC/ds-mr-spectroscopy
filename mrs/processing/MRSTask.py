@@ -8,6 +8,8 @@ from mrs.processing.MRSJob import MRSJob
 from mrs.reporting.MRSNormalChart import MRSNormalChart, Chart
 from mrs.reporting.MRSLayout import MRSLayout
 from aide_sdk.logger.logger import LogManager
+from mrs.dicom.study import Study
+from mrs.dicom.series import Series
 from config.config import SETTINGS, APP_DATA_DIR
 
 
@@ -26,7 +28,8 @@ class MRSTask:
     qa_db_full_filename = os.path.join(qa_dir, 'qa_res.csv')
 
     def __init__(self, study: Study):
-        super(MRSTask, self).__init__(study=study, name='MRS')
+        # super(MRSTask, self).__init__(study=study, name='MRS')
+        self.study = study
         self.processed_csv = ''
         self.list_of_mrs_job_input_lists = []
 
@@ -34,6 +37,17 @@ class MRSTask:
     def is_qa(self):
         if ('MRS' in self.study.subject_name) and ('QA' in self.study.subject_name):
             return True
+        else:
+            return False
+
+    @property
+    def valid(self) -> bool:
+        log.debug('Checking validity of {self.study} for {self} - returns true if Study has an MRS in it.'.format(
+            **locals()))
+        for series in self.study.series_list:
+            for dcm in series.dicom_list:
+                if is_mrs(dcm):
+                    return True
         else:
             return False
 
@@ -57,11 +71,12 @@ class MRSTask:
                     mrs_job.mrs_process_job()
 
                 except Exception as e:
-                    myemail.nhs_mail(
-                        [SETTINGS['mrs']['clinical_email_list']], 'MRS Failure {}'.format(self.study.subject_id),
-                        'This MRS Processing job failed to complete and has not been archived to any PACS. The file(s) still '
-                        'exists on the dicomserver in an intermediate folder. The process failed with the following '
-                        'exception: \n{}'.format(e), [])
+                    pass
+                    # myemail.nhs_mail(
+                    #     [SETTINGS['mrs']['clinical_email_list']], 'MRS Failure {}'.format(self.study.subject_id),
+                    #     'This MRS Processing job failed to complete and has not been archived to any PACS. The file(s) still '
+                    #     'exists on the dicomserver in an intermediate folder. The process failed with the following '
+                    #     'exception: \n{}'.format(e), [])
                 try:
                     self.archive(mrs_job)
                 except Exception as e:
@@ -70,13 +85,14 @@ class MRSTask:
                     try:
                         log.critical('Could not archive MRS Job. \nstorescu:\n{}'.format(e.stdout.decode('utf-8')))
                         try:
-                            myemail.nhs_mail(
-                                [SETTINGS['mrs']['clinical_email_list']],
-                                'MRS Failure {}'.format(self.study.subject_id),
-                                'This MRS Processing job completed but failed to archive to PACS.'
-                                'The archive method failed with the following error: '
-                                '\n{}'.format(e.stdout.decode('utf-8')),
-                                attachments=[])
+                            pass
+                            # myemail.nhs_mail(
+                            #     [SETTINGS['mrs']['clinical_email_list']],
+                            #     'MRS Failure {}'.format(self.study.subject_id),
+                            #     'This MRS Processing job completed but failed to archive to PACS.'
+                            #     'The archive method failed with the following error: '
+                            #     '\n{}'.format(e.stdout.decode('utf-8')),
+                            #     attachments=[])
                         except ConnectionRefusedError:
                             raise
                     except:
@@ -136,20 +152,21 @@ class MRSTask:
                 reports.append(report)
 
         try:
-            log.info('Sending email with PDF attached.')
-            myemail.nhs_mail(recipients=[SETTINGS['mrs']['clinical_email_list']],
-                             subject='MRS PDF Result: {}'.format(patient_id),
-                             message="An MR Spectroscopy has been processed and archived.\n"
-                                     "Please review the results attached.\n"
-                                     "This email contains patient information, do not forward outside the N3 or "
-                                     "GSTT network."
-                                     "\n"
-                                     "\n"
-                                     "\n"
-                                     "\n "
-                                     "This is an automated email sent by dicomserver: "
-                                     "https://bitbucket.org/gsttmri/dicomserver".format(mrs_job.job_results_dir),
-                             attachments=reports)
+            log.warning('No email functionality available! ')
+            # log.info('Sending email with PDF attached.')
+            # myemail.nhs_mail(recipients=[SETTINGS['mrs']['clinical_email_list']],
+            #                  subject='MRS PDF Result: {}'.format(patient_id),
+            #                  message="An MR Spectroscopy has been processed and archived.\n"
+            #                          "Please review the results attached.\n"
+            #                          "This email contains patient information, do not forward outside the N3 or "
+            #                          "GSTT network."
+            #                          "\n"
+            #                          "\n"
+            #                          "\n"
+            #                          "\n "
+            #                          "This is an automated email sent by dicomserver: "
+            #                          "https://bitbucket.org/gsttmri/dicomserver".format(mrs_job.job_results_dir),
+            #                  attachments=reports)
         except Exception as e:
             log.exception(e)
             raise  # because firewall won't let gmail send for some reason, maybe need different port
@@ -189,81 +206,79 @@ class MRSTask:
         # self.list_of_mrs_job_input_lists = [[] for i in range(len(self.study.series_list))]  # List of jobs can only be as long as the number of series is in the Study
         self.list_of_mrs_job_input_lists = []
 
-        if self.valid is True:
+        # [mrs_list.append(series) for series in self.study.series_list if is_mrs(series)]
 
-            # [mrs_list.append(series) for series in self.study.series_list if is_mrs(series)]
+        for series in self.study.series_list:
 
-            for series in self.study.series_list:
+            tmp = []
+            for dcm in series.dicom_list:
+                if is_mrs(dcm):
+                    tmp.append(dcm)
 
-                tmp = []
-                for dcm in series.dicom_list:
-                    if is_mrs(dcm):
-                        tmp.append(dcm)
+            if tmp:
+                mrs_list.append(Series(dicom_list=tmp))
 
-                if tmp:
-                    mrs_list.append(Series(images=tmp))
+        if self.is_qa is True:
+            # If this is a QA study, usually only one 'job' - i.e. if Philips, single DICOM; if Siemens, two DICOMs (acq and water ref)
+            # BUT - if there ARE multiple jobs in the study - collect them serially
+            siemens_water_sup_list = []
+            siemens_water_ref_list = []
 
-            if self.is_qa is True:
-                # If this is a QA study, usually only one 'job' - i.e. if Philips, single DICOM; if Siemens, two DICOMs (acq and water ref)
-                # BUT - if there ARE multiple jobs in the study - collect them serially
-                siemens_water_sup_list = []
-                siemens_water_ref_list = []
+            for series in mrs_list:
+                if series.manufacturer == 'Philips Medical Systems':
+                    self.list_of_mrs_job_input_lists.append([series])  # Note the square brackets - that's because each elements of the jobs list is a list of series for each job
 
-                for series in mrs_list:
-                    if series.manufacturer == 'Philips Medical Systems':
-                        self.list_of_mrs_job_input_lists.append([series])  # Note the square brackets - that's because each elements of the jobs list is a list of series for each job
+                elif series.manufacturer.lower() == 'siemens':
 
-                    elif series.manufacturer.lower() == 'siemens':
+                    series_type = identify_siemens_mrs_series_type(series)
+                    if 'water_reference' in series_type:
+                        siemens_water_ref_list.append(series)
+                    elif 'water_suppressed' in series_type:
+                        siemens_water_sup_list.append(series)
+                    else:
+                        log.debug(
+                            'Series {series} is not water_reference or water_suppressed - not adding to MRSJob list')
 
-                        series_type = identify_siemens_mrs_series_type(series)
-                        if 'water_reference' in series_type:
-                            siemens_water_ref_list.append(series)
-                        elif 'water_suppressed' in series_type:
-                            siemens_water_sup_list.append(series)
-                        else:
-                            log.debug(
-                                'Series {series} is not water_reference or water_suppressed - not adding to MRSJob list')
+            if series.manufacturer.lower() == 'siemens':
 
-                if series.manufacturer.lower() == 'siemens':
+                N_min = min(len(siemens_water_ref_list), len(siemens_water_sup_list))
 
-                    N_min = min(len(siemens_water_ref_list), len(siemens_water_sup_list))
+                [self.list_of_mrs_job_input_lists.append([siemens_water_ref_list[i], siemens_water_sup_list[i]]) for
+                 i in range(0, N_min)]
 
-                    [self.list_of_mrs_job_input_lists.append([siemens_water_ref_list[i], siemens_water_sup_list[i]]) for
-                     i in range(0, N_min)]
+                if len(siemens_water_ref_list) != len(siemens_water_sup_list):
+                    log.warning(
+                        'Number of water references in series does not equal number of water suppressed scans')
 
-                    if len(siemens_water_ref_list) != len(siemens_water_sup_list):
-                        log.warning(
-                            'Number of water references in series does not equal number of water suppressed scans')
+        elif self.is_qa is False:
+            # New version of Siemens Patient data job-sorting code
+            datetimes = []
+            for series in mrs_list:
+                if ('_ref' in series.dicom_list[0].SeriesDescription) and (series.manufacturer.lower() == 'siemens'):
+                    self.list_of_mrs_job_input_lists.append([series])  # Square brackets here to make list of containing list for each job
+                    datetimes.append(datetime.datetime.strptime(series.dicom_list[0].AcquisitionDateTime, '%Y%m%d%H%M%S.%f'))
 
-            elif self.is_qa is False:
-                # New version of Siemens Patient data job-sorting code
-                datetimes = []
-                for series in mrs_list:
-                    if ('_ref' in series.dicom_list[0].SeriesDescription) and (series.manufacturer.lower() == 'siemens'):
-                        self.list_of_mrs_job_input_lists.append([series])  # Square brackets here to make list of containing list for each job
-                        datetimes.append(datetime.datetime.strptime(series.dicom_list[0].AcquisitionDateTime, '%Y%m%d%H%M%S.%f'))
+            # Now filter other series
+            for series_tmp in mrs_list:
+                if '_ref' not in series_tmp.dicom_list[0].SeriesDescription:
+                    datetime_candidate = datetime.datetime.strptime(series_tmp.dicom_list[0].AcquisitionDateTime,'%Y%m%d%H%M%S.%f')
+                    if not datetimes:
+                        # List is empty, so add candidate as a job
+                        datetimes.append(datetime_candidate)
+                        self.list_of_mrs_job_input_lists.append([series_tmp])
+                    else:
+                        dt_diff = [abs((x - datetime_candidate).total_seconds()) for x in datetimes]
 
-                # Now filter other series
-                for series_tmp in mrs_list:
-                    if '_ref' not in series_tmp.dicom_list[0].SeriesDescription:
-                        datetime_candidate = datetime.datetime.strptime(series_tmp.dicom_list[0].AcquisitionDateTime,'%Y%m%d%H%M%S.%f')
-                        if not datetimes:
-                            # List is empty, so add candidate as a job
-                            datetimes.append(datetime_candidate)
-                            self.list_of_mrs_job_input_lists.append([series_tmp])
-                        else:
-                            dt_diff = [abs((x - datetime_candidate).total_seconds()) for x in datetimes]
+                        min_dt_diff = min(dt_diff)
+                        min_dt_diff_index = dt_diff.index(min(dt_diff))
 
-                            min_dt_diff = min(dt_diff)
-                            min_dt_diff_index = dt_diff.index(min(dt_diff))
-
-                            if min_dt_diff <= int(SETTINGS['mrs']['job_ref_acq_time_diff_thresh']):
-                                self.list_of_mrs_job_input_lists[min_dt_diff_index].append(series_tmp)
-                            elif min_dt_diff > int(SETTINGS['mrs']['job_ref_acq_time_diff_thresh']):
-                                if series_tmp.manufacturer.lower() == 'siemens':
-                                    log.info('Could not assign series {series_tmp} to a job')
-                                elif series_tmp.manufacturer == 'Philips Medical Systems':
-                                    self.list_of_mrs_job_input_lists.append([series_tmp])
-                                    datetimes.append(datetime_candidate)
+                        if min_dt_diff <= int(SETTINGS['mrs']['job_ref_acq_time_diff_thresh']):
+                            self.list_of_mrs_job_input_lists[min_dt_diff_index].append(series_tmp)
+                        elif min_dt_diff > int(SETTINGS['mrs']['job_ref_acq_time_diff_thresh']):
+                            if series_tmp.manufacturer.lower() == 'siemens':
+                                log.info('Could not assign series {series_tmp} to a job')
+                            elif series_tmp.manufacturer == 'Philips Medical Systems':
+                                self.list_of_mrs_job_input_lists.append([series_tmp])
+                                datetimes.append(datetime_candidate)
 
         return
