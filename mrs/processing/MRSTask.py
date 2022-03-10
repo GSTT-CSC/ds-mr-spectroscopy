@@ -2,16 +2,21 @@ import os
 import pandas as pd
 import subprocess
 import datetime
+from typing import Optional
 
 from mrs.tools.tools import calc_mean_xcorr, identify_siemens_mrs_series_type, is_mrs
 from mrs.processing.MRSJob import MRSJob
 from mrs.reporting.MRSNormalChart import MRSNormalChart, Chart
 from mrs.reporting.MRSLayout import MRSLayout
+
 from aide_sdk.logger.logger import LogManager
+from aide_sdk.model.operatorcontext import OperatorContext
+from aide_sdk.model.resource import Resource
+
 from mrs.dicom.study import Study
 from mrs.dicom.series import Series
 from config.config import SETTINGS, APP_DATA_DIR
-
+import mrs.tools.myemail as myemail
 
 log = LogManager.get_logger()
 
@@ -27,9 +32,10 @@ class MRSTask:
     qa_dir = os.path.join(mrs_app_dir, 'qa_results')
     qa_db_full_filename = os.path.join(qa_dir, 'qa_res.csv')
 
-    def __init__(self, study: Study):
+    def __init__(self, study: Study, context: Optional[OperatorContext] = None):
         # super(MRSTask, self).__init__(study=study, name='MRS')
         self.study = study
+        self.context = context
         self.processed_csv = ''
         self.list_of_mrs_job_input_lists = []
 
@@ -79,6 +85,7 @@ class MRSTask:
                     #     'exception: \n{}'.format(e), [])
                 try:
                     self.archive(mrs_job)
+                    log.warning('not archiving here - should be done at operator level')
                 except Exception as e:
                     log.exception(e)
                 except subprocess.CalledProcessError as e:
@@ -86,13 +93,13 @@ class MRSTask:
                         log.critical('Could not archive MRS Job. \nstorescu:\n{}'.format(e.stdout.decode('utf-8')))
                         try:
                             pass
-                            # myemail.nhs_mail(
-                            #     [SETTINGS['mrs']['clinical_email_list']],
-                            #     'MRS Failure {}'.format(self.study.subject_id),
-                            #     'This MRS Processing job completed but failed to archive to PACS.'
-                            #     'The archive method failed with the following error: '
-                            #     '\n{}'.format(e.stdout.decode('utf-8')),
-                            #     attachments=[])
+                            myemail.nhs_mail(
+                                [SETTINGS['mrs']['clinical_email_list']],
+                                'MRS Failure {}'.format(self.study.subject_id),
+                                'This MRS Processing job completed but failed to archive to PACS.'
+                                'The archive method failed with the following error: '
+                                '\n{}'.format(e.stdout.decode('utf-8')),
+                                attachments=[])
                         except ConnectionRefusedError:
                             raise
                     except:
@@ -124,9 +131,8 @@ class MRSTask:
 
             if 'Tarquin_Output' in item and '.dcm' in item:
                 log.debug(f'Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
-
-                a = self.archive_pacs(os.path.join(mrs_job.job_results_dir, item))
-                log.debug(a)
+                self.context.add_resource(Resource(format='dicom', content_type='result',
+                                                   file_path=os.path.join(mrs_job.job_results_dir, item)))
         return
 
     def notify(self, mrs_job):
@@ -152,21 +158,20 @@ class MRSTask:
                 reports.append(report)
 
         try:
-            log.warning('No email functionality available! ')
-            # log.info('Sending email with PDF attached.')
-            # myemail.nhs_mail(recipients=[SETTINGS['mrs']['clinical_email_list']],
-            #                  subject='MRS PDF Result: {}'.format(patient_id),
-            #                  message="An MR Spectroscopy has been processed and archived.\n"
-            #                          "Please review the results attached.\n"
-            #                          "This email contains patient information, do not forward outside the N3 or "
-            #                          "GSTT network."
-            #                          "\n"
-            #                          "\n"
-            #                          "\n"
-            #                          "\n "
-            #                          "This is an automated email sent by dicomserver: "
-            #                          "https://bitbucket.org/gsttmri/dicomserver".format(mrs_job.job_results_dir),
-            #                  attachments=reports)
+            log.info('Sending email with PDF attached.')
+            myemail.nhs_mail(recipients=[SETTINGS['mrs']['clinical_email_list']],
+                             subject='MRS PDF Result: {}'.format(patient_id),
+                             message="An MR Spectroscopy has been processed and archived.\n"
+                                     "Please review the results attached.\n"
+                                     "This email contains patient information, do not forward outside the N3 or "
+                                     "GSTT network."
+                                     "\n"
+                                     "\n"
+                                     "\n"
+                                     "\n "
+                                     "This is an automated email sent by dicomserver: "
+                                     "https://bitbucket.org/gsttmri/dicomserver".format(mrs_job.job_results_dir),
+                             attachments=reports)
         except Exception as e:
             log.exception(e)
             raise  # because firewall won't let gmail send for some reason, maybe need different port

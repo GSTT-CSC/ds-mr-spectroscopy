@@ -18,15 +18,22 @@ class MRSOperator(AideOperator):
     """
 
     def process(self, context: OperatorContext) -> OperatorContext:
-
+        """
+        Process the MRS task.
+        :param context:
+        :return: OperatorContext
+        """
         mrs_study = self._build_dicomserver_study(context)
 
         if check_valid_mrs(context):
-            mrs_task = MRSTask(mrs_study)
+            mrs_task = MRSTask(mrs_study, context)
             mrs_task.process()
 
     def _build_dicomserver_study(self, context: OperatorContext) -> Study:
-
-        for series in context.origin.series:
-            for image in series.images:
-                pass
+        """
+        Build a DICOM study from the context.
+        :param context:
+        :return: dicomserver study
+        """
+        list_of_dicoms_in_study = context.origin.series
+        return Study(dicom_list=list_of_dicoms_in_study)

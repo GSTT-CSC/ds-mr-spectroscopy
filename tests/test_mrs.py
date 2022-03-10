@@ -211,11 +211,11 @@ class TestSiemensMRSStudy(unittest.TestCase):
         # Run MRSTask jobs
         self.vida_svs_se_all_task.process()
         # Check files exist
-        assert os.path.exists(os.path.join(APP_DATA_DIR, 'mrs', 'GSTTQA', '20210218', 'MRS_te30_15x25x15_saveall_ECC',
+        assert os.path.exists(os.path.join(APP_DATA_DIR, 'GSTTQA', '20210218', 'MRS_te30_15x25x15_saveall_ECC',
                                            'GSTTQA_20210218_MRS_te30_15x25x15_saveall_ECC__Tarquin_Output_Extended_Plot.dcm'))
-        assert os.path.exists(os.path.join(APP_DATA_DIR, 'mrs', 'GSTTQA', '20210218', 'MRS_te144_15x25x15_saveall_ECC',
+        assert os.path.exists(os.path.join(APP_DATA_DIR, 'GSTTQA', '20210218', 'MRS_te144_15x25x15_saveall_ECC',
                                            'GSTTQA_20210218_MRS_te144_15x25x15_saveall_ECC__Tarquin_Output_Extended_Plot.dcm'))
-        assert os.path.exists(os.path.join(APP_DATA_DIR, 'mrs', 'GSTTQA', '20210218', 'MRS_te288_15x25x15_saveall_ECC',
+        assert os.path.exists(os.path.join(APP_DATA_DIR, 'GSTTQA', '20210218', 'MRS_te288_15x25x15_saveall_ECC',
                                            'GSTTQA_20210218_MRS_te288_15x25x15_saveall_ECC__Tarquin_Output_Extended_Plot.dcm'))
 
 
