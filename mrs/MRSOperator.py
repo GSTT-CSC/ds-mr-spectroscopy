@@ -23,17 +23,10 @@ class MRSOperator(AideOperator):
         :param context:
         :return: OperatorContext
         """
-        mrs_study = self._build_dicomserver_study(context)
+        mrs_study = Study(study_dir=context.origin.series.file_path)
 
         if check_valid_mrs(context):
             mrs_task = MRSTask(mrs_study, context)
-            mrs_task.process()
+            context = mrs_task.process()
 
-    def _build_dicomserver_study(self, context: OperatorContext) -> Study:
-        """
-        Build a DICOM study from the context.
-        :param context:
-        :return: dicomserver study
-        """
-        list_of_dicoms_in_study = context.origin.series
-        return Study(dicom_list=list_of_dicoms_in_study)
+        return context

@@ -64,7 +64,7 @@ class MRSTask:
             os.makedirs(MRSTask.mrs_app_dir, exist_ok=True)
 
         self.build_jobs_list()
-
+        success = False
         for job_series_list in self.list_of_mrs_job_input_lists:
 
             if len(job_series_list) > 0:
@@ -77,15 +77,15 @@ class MRSTask:
                     mrs_job.mrs_process_job()
 
                 except Exception as e:
-                    pass
-                    # myemail.nhs_mail(
-                    #     [SETTINGS['mrs']['clinical_email_list']], 'MRS Failure {}'.format(self.study.subject_id),
-                    #     'This MRS Processing job failed to complete and has not been archived to any PACS. The file(s) still '
-                    #     'exists on the dicomserver in an intermediate folder. The process failed with the following '
-                    #     'exception: \n{}'.format(e), [])
+                    myemail.nhs_mail(
+                        [SETTINGS['mrs']['clinical_email_list']], 'MRS Failure {}'.format(self.study.subject_id),
+                        'This MRS Processing job failed to complete and has not been archived to any PACS. The file(s) still '
+                        'exists on the dicomserver in an intermediate folder. The process failed with the following '
+                        'exception: \n{}'.format(e), [])
                 try:
-                    self.archive(mrs_job)
-                    log.warning('not archiving here - should be done at operator level')
+                    context_outptut = self.archive(mrs_job)
+                    success = True
+                    # log.warning('not archiving here - should be done at operator level')
                 except Exception as e:
                     log.exception(e)
                 except subprocess.CalledProcessError as e:
@@ -109,6 +109,8 @@ class MRSTask:
                 except Exception as e:
                     log.warning('Could not send notification of MRS Study {}'.format(e))
                     raise
+                if success:
+                    return context_outptut
 
     def archive(self, mrs_job):
         """
@@ -133,7 +135,7 @@ class MRSTask:
                 log.debug(f'Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
                 self.context.add_resource(Resource(format='dicom', content_type='result',
                                                    file_path=os.path.join(mrs_job.job_results_dir, item)))
-        return
+        return self.context
 
     def notify(self, mrs_job):
         """

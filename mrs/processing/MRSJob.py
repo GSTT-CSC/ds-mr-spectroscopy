@@ -9,7 +9,6 @@ import csv
 import datetime
 import pydicom as pyd
 import copy
-import PyPDF2
 
 from config.config import SETTINGS
 from mrs import VERSION
