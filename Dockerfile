@@ -18,4 +18,4 @@ RUN sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xm
 COPY mrs/ mrs/
 COPY config/ config/
 
-#CMD ["python", "main.py"]
+CMD ["python", "main.py"]
