@@ -12,7 +12,7 @@ RUN ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-RUN pip install --no-dependencies pydicom==1.4.2
+#RUN pip install --no-dependencies pydicom==1.4.2
 RUN sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
 
 COPY mrs/ mrs/

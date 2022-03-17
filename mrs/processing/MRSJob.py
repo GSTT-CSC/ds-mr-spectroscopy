@@ -490,9 +490,15 @@ class MRSJob:
 
         n_reject = 50
         n_pad_factor = 3
+        n_pad_factor = 3
 
         # Suppressed Spectrum
-        data_raw = np.array(self.water_sup_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
+        # try:
+        #     data_raw = np.array(self.water_sup_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
+        # except ValueError:
+        data_raw = np.fromiter(iter(self.water_sup_series.dicom_list[0][0x5600, 0x0020]), dtype=np.float32)
+
+
 
         data_complex = data_raw[0::2] + 1j * data_raw[1::2]
         data_complex = data_complex[n_reject:-n_reject]
@@ -500,7 +506,8 @@ class MRSJob:
         data = np.fft.fftshift(np.fft.fft(data_complex))
 
         # Unsuppressed Spectrum
-        data_wr_raw = np.array(self.water_ref_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
+        # data_wr_raw = np.array(self.water_ref_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
+        data_wr_raw = np.fromiter(iter(self.water_ref_series.dicom_list[0][0x5600, 0x0020]), dtype=np.float32)
         data_wr_complex = data_wr_raw[0::2] + 1j * data_wr_raw[1::2]
         data_wr_complex = data_wr_complex[n_reject:-n_reject]
         data_wr_complex = np.pad(data_wr_complex, (0, n_pad_factor * data_wr_complex.size), 'constant',

@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import subprocess
 import datetime
+from pydicom import dcmread
 from typing import Optional
 
 from mrs.tools.tools import calc_mean_xcorr, identify_siemens_mrs_series_type, is_mrs
@@ -9,6 +10,7 @@ from mrs.processing.MRSJob import MRSJob
 from mrs.reporting.MRSNormalChart import MRSNormalChart, Chart
 from mrs.reporting.MRSLayout import MRSLayout
 
+from aide_sdk.utils.file_storage import FileStorage
 from aide_sdk.logger.logger import LogManager
 from aide_sdk.model.operatorcontext import OperatorContext
 from aide_sdk.model.resource import Resource
@@ -110,6 +112,7 @@ class MRSTask:
                     log.warning('Could not send notification of MRS Study {}'.format(e))
                     raise
                 if success:
+                    log.debug('MRS task complete for subject_id: {}'.format(self.study.subject_id))
                     return context_outptut
 
     def archive(self, mrs_job):
@@ -133,8 +136,10 @@ class MRSTask:
 
             if 'Tarquin_Output' in item and '.dcm' in item:
                 log.debug(f'Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
-                self.context.add_resource(Resource(format='dicom', content_type='result',
-                                                   file_path=os.path.join(mrs_job.job_results_dir, item)))
+                fpath = os.path.join(mrs_job.job_results_dir, item)
+                file_manager = FileStorage(self.context)
+                path = file_manager.save_dicom("my_results", dcmread(fpath))
+                self.context.add_resource(Resource(format='dicom', content_type='result', file_path=fpath))
         return self.context
 
     def notify(self, mrs_job):
