@@ -13,9 +13,10 @@ COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
-
 COPY mrs/ mrs/
 COPY config/ config/
 COPY main.py main.py
+
+ENV MANIFEST_PATH=config/manifest.json
 
 CMD ["python", "main.py"]
