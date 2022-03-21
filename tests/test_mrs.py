@@ -54,7 +54,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
 
         mrs_job = build_job(self.philips_patient_mrs_process_task_dynamics)
         assert mrs_job.mrs_process_job()
-        log.debug(mrs_job.job_results_dir)
+        log.warn(mrs_job.job_results_dir)
         assert os.path.exists(os.path.join(
             mrs_job.job_results_dir,
             'test_20210303_medv_PRESS_55_tr1500_Tarquin_Output-0.png'))

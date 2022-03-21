@@ -10,7 +10,7 @@ from mrs.processing.MRSJob import MRSJob
 from mrs.reporting.MRSNormalChart import MRSNormalChart, Chart
 from mrs.reporting.MRSLayout import MRSLayout
 
-# from aide_sdk.utils.file_storage import FileStorage
+from aide_sdk.utils.file_storage import FileStorage
 from aide_sdk.logger.logger import LogManager
 from aide_sdk.model.operatorcontext import OperatorContext
 from aide_sdk.model.resource import Resource
@@ -50,7 +50,7 @@ class MRSTask:
 
     @property
     def valid(self) -> bool:
-        log.debug('Checking validity of {self.study} for {self} - returns true if Study has an MRS in it.'.format(
+        log.warn('Checking validity of {self.study} for {self} - returns true if Study has an MRS in it.'.format(
             **locals()))
         for series in self.study.series_list:
             for dcm in series.dicom_list:
@@ -59,10 +59,10 @@ class MRSTask:
         else:
             return False
 
-    def process(self):
+    def process(self) -> OperatorContext:
 
         if not os.path.exists(MRSTask.mrs_app_dir):  # pragma: no cover
-            log.debug('{MRSTask.mrs_app_dir} does not exist. Creating directory now.')
+            log.warn('{MRSTask.mrs_app_dir} does not exist. Creating directory now.')
             os.makedirs(MRSTask.mrs_app_dir, exist_ok=True)
 
         self.build_jobs_list()
@@ -85,7 +85,7 @@ class MRSTask:
                         'exists on the dicomserver in an intermediate folder. The process failed with the following '
                         'exception: \n{}'.format(e), [])
                 try:
-                    context_outptut = self.archive(mrs_job)
+                    context_output = self.archive(mrs_job)
                     success = True
                     # log.warning('not archiving here - should be done at operator level')
                 except Exception as e:
@@ -94,7 +94,6 @@ class MRSTask:
                     try:
                         log.critical('Could not archive MRS Job. \nstorescu:\n{}'.format(e.stdout.decode('utf-8')))
                         try:
-                            pass
                             myemail.nhs_mail(
                                 [SETTINGS['mrs']['clinical_email_list']],
                                 'MRS Failure {}'.format(self.study.subject_id),
@@ -112,8 +111,8 @@ class MRSTask:
                     log.warning('Could not send notification of MRS Study {}'.format(e))
                     raise
                 if success:
-                    log.debug('MRS task complete for subject_id: {}'.format(self.study.subject_id))
-                    return context_outptut
+                    log.warn('MRS task complete for subject_id: {}'.format(self.study.subject_id))
+                    return context_output
 
     def archive(self, mrs_job):
         """
@@ -125,17 +124,17 @@ class MRSTask:
         log.info("Archiving {mrs_job.water_sup_series}".format(**locals()))
 
         if self.is_qa:
-            log.debug('Study is QA, so do not archive to PACS')
+            log.warn('Study is QA, so do not archive to PACS')
             return
 
-        log.debug(f'Searching for archivable in {mrs_job.job_results_dir}')
+        log.warn(f'Searching for archivable in {mrs_job.job_results_dir}')
 
         for item in os.listdir(mrs_job.job_results_dir):
 
-            log.debug(f'Item: {item}')
+            log.warn(f'Item: {item}')
 
             if 'Tarquin_Output' in item and '.dcm' in item:
-                log.debug(f'Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
+                log.warn(f'Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
                 mrspath = os.path.join(mrs_job.job_results_dir, item)
                 file_manager = FileStorage(self.context)
                 outpath = file_manager.save_dicom(item, dcmread(mrspath))
@@ -155,7 +154,7 @@ class MRSTask:
         reports = []
 
         for item in os.listdir(mrs_job.job_results_dir):
-            log.debug('Item: {item}'.format(**locals()))
+            log.warn('Item: {item}'.format(**locals()))
 
             # Tarquin produces png files, one for each page of the pdf. Attaching pngs instead of pdf as it can be
             # attached inline of the message.
@@ -248,7 +247,7 @@ class MRSTask:
                     elif 'water_suppressed' in series_type:
                         siemens_water_sup_list.append(series)
                     else:
-                        log.debug(
+                        log.warn(
                             'Series {series} is not water_reference or water_suppressed - not adding to MRSJob list')
 
             if series.manufacturer.lower() == 'siemens':

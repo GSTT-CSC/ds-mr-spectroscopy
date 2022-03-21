@@ -42,11 +42,11 @@ class Study:
                                  "Please provide only one.")
 
         elif self._study_dir:
-            log.debug('Constructing Study from study dir {self._study_dir}'.format(**locals()))
+            log.warn('Constructing Study from study dir {self._study_dir}'.format(**locals()))
             self._series_list = _get_list_of_series_(self._study_dir)
 
         elif self._dicom_list:
-            log.debug('Constructing Study from Dicom list {self._dicom_list}'.format(**locals()))
+            log.warn('Constructing Study from Dicom list {self._dicom_list}'.format(**locals()))
             self._series_list = _get_list_of_series_from_dicom_(self._dicom_list)
 
         try:
@@ -214,7 +214,7 @@ def _get_list_of_series_(root_dir) -> [Series]:
         for directory in dirs:
             try:
                 series_list.append(Series(series_dir=os.path.join(root, directory)))
-                log.debug(series_list)
+                log.warn(series_list)
             except:
                 raise
 

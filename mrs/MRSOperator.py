@@ -23,9 +23,9 @@ class MRSOperator(AideOperator):
         :param context:
         :return: OperatorContext
         """
-        mrs_study = Study(study_dir=context.origin.series.file_path)
+        mrs_study = Study(study_dir=context.origin.file_path)
 
-        if check_valid_mrs(context):
+        if check_valid_mrs(mrs_study):
             mrs_task = MRSTask(mrs_study, context)
             context = mrs_task.process()
 

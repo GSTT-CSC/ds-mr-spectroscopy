@@ -14,6 +14,7 @@ from mrs.tools.exceptions import InvalidInputData
 from config.config import SETTINGS
 from aide_sdk.logger.logger import LogManager
 from mrs.dicom.series import Series
+from mrs.dicom.study import Study
 
 log = LogManager.get_logger()
 
@@ -36,9 +37,9 @@ def calc_mean_xcorr(patient: pd.DataFrame, normal_list: list):  # pragma: no cov
     return np.mean(xcorr)
 
 
-def check_valid_mrs(context) -> bool:
-    for series in context.origin.series:
-        for dcm in series.images:
+def check_valid_mrs(study: Study) -> bool:
+    for series in study.series_list:
+        for dcm in series.dicom_list:
             if is_mrs(dcm):
                 return True
     else:
@@ -66,7 +67,7 @@ def is_mrs(dcm) -> bool:
 
                 if dcm.PulseSequenceName == 'SPECTROSCOPY':
 
-                    log.debug('Found Philips MRS data')
+                    log.warn('Found Philips MRS data')
                     return True
                 else:
 
@@ -77,7 +78,7 @@ def is_mrs(dcm) -> bool:
                 try:
                     if dcm['2005', '140f'][0]['0018', '9005'].value == 'SPECTROSCOPY':
 
-                        log.debug('Found Philips MRS data')
+                        log.warn('Found Philips MRS data')
                         return True
                     else:
                         return False
@@ -99,10 +100,10 @@ def is_mrs(dcm) -> bool:
 
                         if line.startswith(b'tSequenceFileName'):
                             if line.endswith(b'svs_se""\n'):
-                                log.debug('Found Siemens MRS data')
+                                log.warn('Found Siemens MRS data')
                                 return True
                             else:
-                                log.debug('This is not MRS data: {line}'.format(**locals()))
+                                log.warn('This is not MRS data: {line}'.format(**locals()))
                                 return False
 
                     else:
@@ -113,7 +114,7 @@ def is_mrs(dcm) -> bool:
 
 
 def get_voxel_size(series: Series):
-    log.debug('Running get_voxel_size function')
+    log.warn('Running get_voxel_size function')
 
     dcm = series.dicom_list[0]
 
@@ -155,7 +156,7 @@ def get_voxel_size(series: Series):
 
 
 def get_tf_mhz(series: Series):
-    log.debug('Running get_tf_mhz function to get the transmitter frequency in MHz')
+    log.warn('Running get_tf_mhz function to get the transmitter frequency in MHz')
 
     dcm = series.dicom_list[0]
     tf = 0.
@@ -173,7 +174,7 @@ def get_tf_mhz(series: Series):
 
 
 def get_te_ms(series: Series):
-    log.debug('Running get_te_ms function')
+    log.warn('Running get_te_ms function')
 
     dcm = series.dicom_list[0]
     n_digits = 2
@@ -209,7 +210,7 @@ def get_te_ms(series: Series):
 
 
 def fwhm(axis, data):
-    log.debug('Running fwhm calculation function')
+    log.warn('Running fwhm calculation function')
     max_sig = np.amax(data)
     max_loc = np.argmax(data)
 
@@ -233,7 +234,7 @@ def fwhm(axis, data):
 
 
 def analysis(x):
-    log.debug('Running analysis')
+    log.warn('Running analysis')
 
     if abs(x[-1] - x.mean()) > float(SETTINGS['mrs']['stat_thresh']) * x.std():
 
@@ -249,7 +250,7 @@ def analysis(x):
 
 
 def make_qa_plots(qa_series_folder, x, y, datatype):
-    log.debug('Running make_qa_plots')
+    log.warn('Running make_qa_plots')
 
     # Make time object
     now = datetime.datetime.now()

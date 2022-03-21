@@ -60,29 +60,31 @@ def nhs_mail(recipients: list, subject: str, message: str, attachments: list = N
     -------
 
     """
+    try:
+        user_name = SETTINGS['email']['nhs_user']
+        password = SETTINGS['email']['nhs_pass']
 
-    user_name = SETTINGS['email']['nhs_user']
-    password = SETTINGS['email']['nhs_pass']
+        msg = construct_message(sender=user_name,
+                                recipients=recipients, subject=subject, message=message, attachments=attachments)
 
-    msg = construct_message(sender=user_name,
-                            recipients=recipients, subject=subject, message=message, attachments=attachments)
+        if is_under_test():
+            s = smtplib.SMTP("localhost", 4000)  # local test server
 
-    if is_under_test():
-        s = smtplib.SMTP("localhost", 4000)  # local test server
+        else:
+            s = smtplib.SMTP("send.nhs.net", port)
+            s.starttls()
 
-    else:
-        s = smtplib.SMTP("send.nhs.net", port)
-        s.starttls()
+            try:
+                s.login(user_name, password)
+            except smtplib.SMTPAuthenticationError:
+                print('SMTPAuthenticationError')
 
-        try:
-            s.login(user_name, password)
-        except smtplib.SMTPAuthenticationError:
-            print('SMTPAuthenticationError')
+        s.send_message(msg)
+        s.quit()
 
-    s.send_message(msg)
-    s.quit()
-
-    return msg
+        return msg
+    except Exception as e:
+        log.error('Unable to send email: Exception - {0}'.format(e))
 
 
 def construct_message(sender: str, recipients: list, subject: str, message: str, attachments: list):
@@ -97,7 +99,7 @@ def construct_message(sender: str, recipients: list, subject: str, message: str,
 
     if attachments:
         for att_fname in attachments:
-            log.debug('Attaching:{att_fname}'.format(**locals()))
+            log.warn('Attaching:{att_fname}'.format(**locals()))
             if is_pdf(att_fname) or ('.html' in att_fname) or ('.xlsx' in att_fname) or ('.csv' in att_fname):
                 att_file = open(att_fname, 'rb')
                 if is_pdf(att_fname):
@@ -125,7 +127,7 @@ def construct_message(sender: str, recipients: list, subject: str, message: str,
 
             elif imghdr.what(att_fname) == 'png':
                 inline_image_string += '<br><img src="cid:{}">'.format(str(att_fname))
-                log.debug("Message:" + str(inline_image_string))
+                log.warn("Message:" + str(inline_image_string))
                 png_file = open(att_fname, 'rb')
                 msg_image = MIMEImage(png_file.read())
                 png_file.close()
@@ -133,7 +135,7 @@ def construct_message(sender: str, recipients: list, subject: str, message: str,
                 msg.attach(msg_image)
 
     msg_text = MIMEText('{message}{inline_image_string}'.format(**locals()), 'html')
-    # log.debug(msg_text)
+    # log.warn(msg_text)
     msg.attach(msg_text)
 
     return msg
@@ -179,7 +181,7 @@ def is_pdf(fp: str) -> bool:
         return True
 
     except Exception as e:
-        log.debug('Could not open {} as pdf. Assuming it is not pdf'.format(fp))
+        log.warn('Could not open {} as pdf. Assuming it is not pdf'.format(fp))
         return False
 
     finally:
