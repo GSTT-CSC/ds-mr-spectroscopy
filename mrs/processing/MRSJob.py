@@ -10,6 +10,7 @@ import datetime
 import pydicom as pyd
 import copy
 
+from suspect.io._common import complex_array_from_iter
 from config.config import SETTINGS
 from mrs import VERSION
 from PIL import Image
@@ -111,6 +112,7 @@ class MRSJob:
                 series_uid = self.series_list[0].series_uid
                 log.debug(f'Reading Philips [{series_name}/{series_uid}] .dcm with suspect')
                 raw_data = suspect.io.load_dicom(self.water_sup_series.dicom_list[0].filename)
+                complex_array_from_iter(self.water_sup_series.dicom_list[0])
                 dynamics = raw_data.shape[0]
                 ws_dynamics = dynamics // 2  # This matches all current Philips test data
                 log.debug('Separating Philips water reference from WS data and averaging transients')
@@ -493,12 +495,9 @@ class MRSJob:
         n_pad_factor = 3
 
         # Suppressed Spectrum
-        # try:
-        #     data_raw = np.array(self.water_sup_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
-        # except ValueError:
+        # this method no longer works with pydicm >1.4 need to use np.fromiter
+        # data_raw = np.array(self.water_sup_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
         data_raw = np.fromiter(iter(self.water_sup_series.dicom_list[0][0x5600, 0x0020]), dtype=np.float32)
-
-
 
         data_complex = data_raw[0::2] + 1j * data_raw[1::2]
         data_complex = data_complex[n_reject:-n_reject]
@@ -506,6 +505,7 @@ class MRSJob:
         data = np.fft.fftshift(np.fft.fft(data_complex))
 
         # Unsuppressed Spectrum
+        # this method no longer works with pydicm >1.4 need to use np.fromiter
         # data_wr_raw = np.array(self.water_ref_series.dicom_list[0].SpectroscopyData, dtype=np.float32)
         data_wr_raw = np.fromiter(iter(self.water_ref_series.dicom_list[0][0x5600, 0x0020]), dtype=np.float32)
         data_wr_complex = data_wr_raw[0::2] + 1j * data_wr_raw[1::2]
