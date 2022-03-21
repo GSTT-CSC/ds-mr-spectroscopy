@@ -12,14 +12,10 @@ RUN ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-#RUN pip install --no-dependencies pydicom==1.4.2
-RUN git clone --recurse-submodules https://git.fmrib.ox.ac.uk/fsl/fsl_mrs.git
-RUN cd fsl_mrs && pip install .
-RUN cd ..
-
 RUN sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
 
 COPY mrs/ mrs/
 COPY config/ config/
+COPY main.py main.py
 
 CMD ["python", "main.py"]
