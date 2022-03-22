@@ -134,10 +134,11 @@ class MRSTask:
             log.warn(f'Item: {item}')
 
             if 'Tarquin_Output' in item and '.dcm' in item:
-                log.warn(f'Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
+                log.warn(f'Archiving Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
                 mrspath = os.path.join(mrs_job.job_results_dir, item)
                 file_manager = FileStorage(self.context)
                 outpath = file_manager.save_dicom(item, dcmread(mrspath))
+                log.warn(f'Saved to: {outpath}')
                 self.context.add_resource(Resource(format='dicom', content_type='result', file_path=outpath))
         return self.context
 
