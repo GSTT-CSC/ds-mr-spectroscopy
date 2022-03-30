@@ -112,7 +112,6 @@ class MRSJob:
                 series_uid = self.series_list[0].series_uid
                 log.warn(f'Reading Philips [{series_name}/{series_uid}] .dcm with suspect')
                 raw_data = suspect.io.load_dicom(self.water_sup_series.dicom_list[0].filename)
-                complex_array_from_iter(self.water_sup_series.dicom_list[0])
                 dynamics = raw_data.shape[0]
                 ws_dynamics = dynamics // 2  # This matches all current Philips test data
                 log.warn('Separating Philips water reference from WS data and averaging transients')
@@ -155,7 +154,6 @@ class MRSJob:
                     os.path.join(self.job_results_dir, self.output_filename_root + 'avg_ref.dpt'), mean_water_ref_data)
 
             log.warn('Performing Tarquin processing')
-
             command = self.build_tarquin_command()
 
             log.warn('Writing tarquin command line to a text file so it is easy to rerun on a later date')
@@ -180,7 +178,7 @@ class MRSJob:
             filedata = filedata.replace('set timestamp top',
                                         'set timestamp top; set label "CAUTION: Tarquin was used to analyse this MRS data. Take care when comparing with previous LCModel results" at screen(0.5),graph(1.1) textcolor "red" center font "Courier,16" ; set label "CAUTION: Tarquin was used to analyse this MRS data. Take care when comparing with previous LCModel results" at screen(0.5),graph(-0.1) textcolor "red" center font "Courier,16" ')
 
-            # Write the file out again
+            # Write the file out againx
             with open(os.path.join(self.job_results_dir, 'gnuplot.txt'), 'w') as file:
                 file.write(filedata)
 
@@ -208,8 +206,8 @@ class MRSJob:
                                 os.path.join(self.job_results_dir, self.output_filename_root + 'Tarquin_Output.pdf'),
                                 os.path.join(self.job_results_dir, self.png_filename + '.png')], check=True)
                 os.chdir(cwd)
-            except:
-                raise
+            except Exception as e:
+                raise e
 
             log.warn('Converting PNG to DICOM')
             self.create_mrs_dicom()

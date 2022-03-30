@@ -1,5 +1,5 @@
 pytest==7.0.1
-suspect==0.4.4
+git+https://github.com/laurencejackson/suspect.git@pydicom-read-error
 aide-sdk==1.0.4
 pydicom==2.2.2
 pillow==9.0.1

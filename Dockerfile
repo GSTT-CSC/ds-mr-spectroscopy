@@ -12,6 +12,8 @@ RUN ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+RUN pip install git+https://github.com/laurencejackson/suspect.git@pydicom-read-error
+
 RUN sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
 COPY mrs/ mrs/
 COPY config/ config/

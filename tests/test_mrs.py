@@ -49,6 +49,12 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         # Create processing object
         self.qa_process = MRSTask(study=mrs_dti_qa)
 
+    def testPatData(self):
+        log.info('TestDynamics')
+
+        mrs_job = build_job(self.philips_patient_mrs_process_task_dynamics)
+        assert mrs_job.mrs_process_job()
+
     def testDynamics(self):
         log.info('TestDynamics')
 

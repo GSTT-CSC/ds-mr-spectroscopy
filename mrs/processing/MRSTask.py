@@ -125,7 +125,8 @@ class MRSTask:
 
         if self.is_qa:
             log.warn('Study is QA, so do not archive to PACS')
-            return
+            # return unmodified context
+            return self.context
 
         log.warn(f'Searching for archivable in {mrs_job.job_results_dir}')
 
