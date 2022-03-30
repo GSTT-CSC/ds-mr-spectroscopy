@@ -19,14 +19,11 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: setup docker buildx
-        uses: docker/setup-buildx-action@v1
-
       - name: Build and tag image
         run: docker build -t mrs-tarquin:latest .
 
       - name: run tests
-        run: docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin pytest --junitxml=pytest.xml  --continue-on-collection-errors tests/ | tee pytest-coverage.txt ; echo $?
+        run: docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin pytest --junitxml=pytest.xml --continue-on-collection-errors tests/ | tee pytest-coverage.txt ; echo $?
 
       - name: report coverage
         id: coverageComment
@@ -34,3 +31,21 @@ jobs:
         with:
           pytest-coverage-path: .pytest-coverage.txt
           junitxml-path: .pytest.xml
+
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: Setup flake8 annotations
+        uses: rbialon/flake8-annotations@v1
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
