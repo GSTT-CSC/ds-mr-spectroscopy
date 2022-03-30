@@ -243,7 +243,7 @@ def _get_list_of_series_from_dicom_(dicom_list) -> [Series]:
             raise AttributeError("Valid series UID could not be found for {se}".format(**locals()))
 
         if series_uid not in series_dict.keys():
-            # create new dictionary entry if series_uid doesnt exist as dictionary key
+            # create new dictionary entry if series_uid doesn't exist as dictionary key
             series_dict[series_uid] = [dicom]
         else:
             # if series_uid exists then append this dicom to list for this series_uid

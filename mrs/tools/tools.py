@@ -6,15 +6,6 @@ import matplotlib.pyplot as pyp
 import pandas as pd
 import numpy as np
 
-# from dicomserver.config import SETTINGS
-# from dicomserver.dicom import Series, Study, Dicom
-# from dicomserver.exceptions import InvalidInputData
-
-from suspect import MRSData
-from suspect.io._common import complex_array_from_iter
-import pydicom.dicomio
-import pydicom.tag
-
 from mrs.tools.exceptions import InvalidInputData
 from config.config import SETTINGS
 from aide_sdk.logger.logger import LogManager
@@ -335,6 +326,7 @@ def identify_siemens_mrs_series_type(series) -> str:
             else:
                 raise Exception('Could not find sPrepPulses.ucWaterSat in dicom file')
     return mrs_series_type
+
 
 # if we are testing and not running then use different config file
 def is_under_test() -> bool:

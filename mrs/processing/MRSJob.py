@@ -10,7 +10,6 @@ import datetime
 import pydicom as pyd
 import copy
 
-from suspect.io._common import complex_array_from_iter
 from config.config import SETTINGS
 from mrs import VERSION
 from PIL import Image
@@ -18,7 +17,6 @@ import mrs.tools.myemail as myemail
 from mrs.dicom.series import Series
 from mrs.tools.tools import get_te_ms, get_voxel_size, identify_siemens_mrs_series_type, fwhm, make_qa_plots, analysis, get_tf_mhz
 from aide_sdk.logger.logger import LogManager
-
 
 log = LogManager.get_logger()
 
@@ -30,6 +28,8 @@ class MRSJob:
     """
 
     def __init__(self, series_list, mrs_app_dir, is_qa, qa_dir, qa_db_full_filename):
+        self.water_ref_series = None
+        self.water_sup_series = None
         self.mrs_app_dir = mrs_app_dir
         self.is_qa = is_qa
         self.qa_dir = qa_dir
@@ -39,8 +39,6 @@ class MRSJob:
         self.clean_job_name = ''
         self.output_filename_root = ''
         self.job_results_dir = ''
-        self.water_sup_series: Series = []
-        self.water_ref_series: Series = []
         self.png_filename = ''
 
     def mrs_process_job(self) -> bool:
@@ -58,15 +56,16 @@ class MRSJob:
             if len(self.series_list) != 1:
                 raise Exception(
                     'Philips MRSJob, but number of series in series_list is not one. Therefore not possible to process')
-        elif (self.series_list[0].manufacturer.lower() == 'siemens'):
+        elif self.series_list[0].manufacturer.lower() == 'siemens':
             if (len(self.series_list) > 3) or (len(self.series_list) == 0):
                 raise Exception(
-                    'Siemens MRSJob, but number of series in series_list is bigger than three or zero. Therefore not possible to process.')
+                    'Siemens MRSJob, but number of series in series_list is bigger than three or zero. '
+                    'Therefore not possible to process.')
 
         # Sort through series list to figure out the water suppressed and any water reference scan
         if self.series_list[0].manufacturer == 'Philips Medical Systems':
             self.water_sup_series = self.series_list[0]
-        elif (self.series_list[0].manufacturer.lower() == 'siemens'):
+        elif self.series_list[0].manufacturer.lower() == 'siemens':
             self.water_sup_series, self.water_ref_series = self.sort_out_siemens_mrs_data()
 
         # Make useful strings
@@ -123,7 +122,9 @@ class MRSJob:
                 mean_water_ref_data._te = float(get_te_ms(self.water_sup_series))
                 log.warn(f'TE of processed spectrum is {mean_raw_data._te} ms')
                 log.warn(
-                    'doing spectral registration in the frequency domain using suspect for water suppressed Philips data')
+                    'doing spectral registration in the frequency domain using suspect for water suppressed'
+                    ' Philips data')
+
                 tf = get_tf_mhz(self.water_sup_series)
                 fc_data = suspect.processing.frequency_correction.correct_frequency_and_phase(raw_data[0:ws_dynamics],
                                                                                               raw_data[0],
@@ -133,7 +134,9 @@ class MRSJob:
                                                                                               )
                 final_fc_data = np.mean(fc_data, axis=0)
                 log.warn(
-                    'doing spectral registration in the frequency domain using suspect for water unsuppressed Philips data')
+                    'doing spectral registration in the frequency domain using suspect for water unsuppressed '
+                    'Philips data')
+
                 fc_data_ref = suspect.processing.frequency_correction.correct_frequency_and_phase(
                     raw_data[ws_dynamics:],
                     raw_data[ws_dynamics],
@@ -176,7 +179,12 @@ class MRSJob:
 
             # Replace the target string
             filedata = filedata.replace('set timestamp top',
-                                        'set timestamp top; set label "CAUTION: Tarquin was used to analyse this MRS data. Take care when comparing with previous LCModel results" at screen(0.5),graph(1.1) textcolor "red" center font "Courier,16" ; set label "CAUTION: Tarquin was used to analyse this MRS data. Take care when comparing with previous LCModel results" at screen(0.5),graph(-0.1) textcolor "red" center font "Courier,16" ')
+                                        'set timestamp top; set label "CAUTION: Tarquin was used to analyse this '
+                                        'MRS data. Take care when comparing with previous LCModel results" at '
+                                        'screen(0.5),graph(1.1) textcolor "red" center font "Courier,16" ; set label '
+                                        '"CAUTION: Tarquin was used to analyse this MRS data. Take care when comparing '
+                                        'with previous LCModel results" at screen(0.5),graph(-0.1) textcolor "red"'
+                                        ' center font "Courier,16" ')
 
             # Write the file out againx
             with open(os.path.join(self.job_results_dir, 'gnuplot.txt'), 'w') as file:
@@ -653,11 +661,13 @@ class MRSJob:
 
         if h2o_snr_ao & ace_snr_ao & h2o_freq_ao & ace_freq_ao & h2o_fwhm_ao & ace_fwhm_ao is True:
 
-            message = "QA PASSED. Please review results attached. This is an automated email sent by dicomserver (https://bitbucket.org/gsttmri/dicomserver)"
+            message = "QA PASSED. Please review results attached. This is an automated email sent by dicomserver" \
+                      " (https://bitbucket.org/gsttmri/dicomserver)"
 
         else:
 
-            message = "QA FAILED. Please review results attached. This is an automated email sent by dicomserver (https://bitbucket.org/gsttmri/dicomserver)"
+            message = "QA FAILED. Please review results attached. This is an automated email sent by dicomserver" \
+                      " (https://bitbucket.org/gsttmri/dicomserver)"
 
         attachments = [h2o_snr_f1, h2o_snr_f2, ace_snr_f1, ace_snr_f2, h2o_freq_f1, h2o_freq_f2, ace_freq_f1,
                        ace_freq_f2, h2o_fwhm_f1, h2o_fwhm_f2, ace_fwhm_f1, ace_fwhm_f2]
