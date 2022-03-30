@@ -1,16 +1,17 @@
 import configparser
 import os
 import shutil
+import json
 
+manifest = json.load(open('config/manifest.json'))
 
 APP_DATA_DIR = '/mrs_app_data'
 CONFIG_DIR = os.path.dirname(os.path.realpath(__file__))  # same dir as this file
-VERSION = '0.1.0'
+VERSION = manifest['model_version']
 
 if os.path.exists(APP_DATA_DIR):
     shutil.rmtree(APP_DATA_DIR)
 os.makedirs(APP_DATA_DIR, exist_ok=True)
-
 
 # Create configparser reader objects
 SETTINGS = configparser.ConfigParser()
