@@ -1,7 +1,7 @@
-FROM python:3.9
+FROM python:3.9-slim
 
 # Install tarquin
-RUN apt-get update -y && apt-get install -y gnuplot ghostscript
+RUN apt-get update -y && apt-get install -y gnuplot ghostscript git wget imagemagick
 RUN mkdir ../tarquin_folder
 RUN wget -O tarquin.tar.gz https://sourceforge.net/projects/tarquin/files/TARQUIN_4.3.11/TARQUIN_Linux_4.3.11.tar.gz/download
 RUN tar -xzf tarquin.tar.gz -C ../tarquin_folder

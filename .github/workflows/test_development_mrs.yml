@@ -22,15 +22,15 @@ jobs:
       - name: setup docker buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build and push
+      - name: Build and tag image
         run: docker build -t mrs-tarquin:latest .
 
       - name: run tests
-        run: docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin pytest --junitxml=cov/pytest.xml  --continue-on-collection-errors tests/ | tee cov/pytest-coverage.txt ; echo $?
+        run: docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin pytest --junitxml=pytest.xml  --continue-on-collection-errors tests/ | tee pytest-coverage.txt ; echo $?
 
-      - name: Pytest coverage
+      - name: report coverage
         id: coverageComment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-coverage-path: ./cov/pytest-coverage.txt
-          junitxml-path: ./cov/pytest.xml
+          pytest-coverage-path: .pytest-coverage.txt
+          junitxml-path: .pytest.xml
