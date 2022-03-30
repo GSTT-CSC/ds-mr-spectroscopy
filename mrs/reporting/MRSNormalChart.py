@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 import pandas as pd
 
 from mrs.reporting.MRSLayout import MRSLayout
+from config.config import SETTINGS
 
 
 class Chart:
