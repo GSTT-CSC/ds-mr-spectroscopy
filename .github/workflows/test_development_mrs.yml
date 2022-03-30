@@ -32,7 +32,7 @@ jobs:
           docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: run tests
-        run: docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin pytest --junitxml=pytest.xml --continue-on-collection-errors tests/ | tee pytest-coverage.txt ; echo $?
+        run: docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=mrs --continue-on-collection-errors tests/ | tee pytest-coverage.txt ; echo $?
 
       - name: report coverage
         id: coverageComment
