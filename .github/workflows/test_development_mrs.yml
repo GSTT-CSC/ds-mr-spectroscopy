@@ -26,7 +26,7 @@ jobs:
         run: docker build -t mrs-tarquin:latest .
 
       - name: run tests
-        run: docker run --mount type=bind,source=$(pwd)/tests,target=/tests mrs-tarquin pytest --cov/junitxml=pytest.xml  --continue-on-collection-errors tests/ | tee cov/pytest-coverage.txt ; echo $?
+        run: docker run --mount type=bind,source=$(pwd),target=/mrs mrs-tarquin pytest --junitxml=cov/pytest.xml  --continue-on-collection-errors tests/ | tee cov/pytest-coverage.txt ; echo $?
 
       - name: Pytest coverage
         id: coverageComment

@@ -9,15 +9,17 @@ RUN rm tarquin.tar.gz
 RUN mv ../tarquin_folder/TARQUIN_Linux_4.3.11_RC/tarquin /usr/local/bin/tarquin
 RUN ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt mrs/requirements.txt
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install -r mrs/requirements.txt
 
 RUN sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
-COPY mrs/ mrs/
-COPY config/ config/
-COPY main.py main.py
+COPY mrs/ mrs/mrs/
+COPY config/ mrs/config/
+COPY main.py mrs/main.py
 
-ENV MANIFEST_PATH=config/manifest.json
+WORKDIR /mrs
+
+ENV MANIFEST_PATH=mrs/config/manifest.json
 
 CMD ["python", "main.py"]
