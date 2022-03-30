@@ -28,7 +28,6 @@ jobs:
           context: .
           file: ./Dockerfile
           tags: mrs-tarquin:latest
-          outputs: type=docker,dest=/tmp/mrs-tarquin.tar
 
       - name: run tests
         run: docker run --mount type=bind,source=$(pwd)/tests,target=/tests mrs-tarquin pytest --continue-on-collection-errors tests/
