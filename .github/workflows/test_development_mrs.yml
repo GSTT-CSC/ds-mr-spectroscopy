@@ -30,32 +30,8 @@ jobs:
           tags: mrs-tarquin:latest
           outputs: type=docker,dest=/tmp/mrs-tarquin.tar
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: mrs-tarquin
-          path: /tmp/mrs-tarquin.tar
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: setup docker buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: mrs-tarquin
-          path: /tmp
-
-      - name: Load Docker image
-        run: |
-          docker load --input /tmp/mrs-tarquin.tar
-
       - name: run tests
-        run:  docker run --mount type=bind,source=$(pwd)/tests,target=/tests mrs-tarquin pytest --continue-on-collection-errors tests/
+        run: docker run --mount type=bind,source=$(pwd)/tests,target=/tests mrs-tarquin pytest --continue-on-collection-errors tests/
 
       - name: Pytest coverage
         id: coverageComment
@@ -63,60 +39,3 @@ jobs:
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
-
-#
-#      - name: setup virtual environment
-#        run: |
-#          python3.6 -m venv env
-#          source ./env/bin/activate
-#          echo "VIRTUAL ENV:" $VIRTUAL_ENV
-#          python3.6 -m pip install --upgrade pip
-#
-#      - name: Install system requirements
-#        run: |
-#          source ./env/bin/activate
-#          sudo apt-get update
-#          sudo apt-get install default-libmysqlclient-dev poppler-utils wget dcmtk gnuplot libcairo2-dev libtiff5-dev libjpeg62 zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk ghostscript -y
-#          gs --version
-#          sudo sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
-##           https://stackoverflow.com/questions/52998331/imagemagick-security-policy-pdf-blocking-conversion
-#
-#      - name: install python packages
-#        run: |
-#          source ./env/bin/activate
-#          python3.6 -m pip install -r requirements.txt
-#          python3.6 -m pip install git+https://${{ secrets.dicomserver_uname }}:${{ secrets.dicomserver_pw }}@bitbucket.org/gsttmri/dicomserver.git@0.12.4.1
-#
-#      - name: GA fixes # https://github.com/actions/virtual-environments/issues/4799
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get remove mysql* && sudo apt-get install -y mysql-server libmysqlclient-dev
-#
-#      - name: Install Tarquin
-#        run: |
-#          source ./env/bin/activate
-#          mkdir ../tarquin_folder && wget -O tarquin.tar.gz https://sourceforge.net/projects/tarquin/files/TARQUIN_4.3.11/TARQUIN_Linux_4.3.11.tar.gz/download && tar -xzf tarquin.tar.gz -C ../tarquin_folder && rm tarquin.tar.gz
-#          mv ../tarquin_folder/TARQUIN_Linux_4.3.11_RC/tarquin /usr/local/bin/tarquin && ln -s /usr/bin/gnuplot /usr/local/bin/gnuplot
-#
-#      - name: print env info
-#        run: |
-#          python3 -c "import sys; print('python3 sys.prefix: ' + sys.prefix)"
-#          python3 -c "import sys; print('python3 sys.base_prefix: ' + sys.base_prefix)"
-#          source ./env/bin/activate
-#          python3 -c "import sys; print('post activate python3 sys.prefix' + sys.prefix)"
-#          python3 -c "import sys; print('post activate python3 sys.base_prefix: ' + sys.base_prefix)"
-#
-#      - name: Run MRS tests
-#        run: |
-#          source ./env/bin/activate
-#          pwd
-#          python3.6 -m pytest --continue-on-collection-errors tests/
-#          set -o pipefail
-#          pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered tests/ | tee pytest-coverage.txt ; echo $?
-#
-#      - name: Pytest coverage
-#        id: coverageComment
-#        uses: MishaKav/pytest-coverage-comment@main
-#        with:
-#          pytest-coverage-path: ./pytest-coverage.txt
-#          junitxml-path: ./pytest.xml
