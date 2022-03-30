@@ -10,8 +10,8 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+
+  build-and-test:
 
     runs-on: ubuntu-latest
 
@@ -23,18 +23,14 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          tags: mrs-tarquin:latest
+        run: docker build -t mrs-tarquin:latest .
 
       - name: run tests
-        run: docker run --mount type=bind,source=$(pwd)/tests,target=/tests mrs-tarquin pytest --continue-on-collection-errors tests/
+        run: docker run --mount type=bind,source=$(pwd)/tests,target=/tests mrs-tarquin pytest --cov/junitxml=pytest.xml  --continue-on-collection-errors tests/ | tee cov/pytest-coverage.txt ; echo $?
 
       - name: Pytest coverage
         id: coverageComment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-coverage-path: ./pytest-coverage.txt
-          junitxml-path: ./pytest.xml
+          pytest-coverage-path: ./cov/pytest-coverage.txt
+          junitxml-path: ./cov/pytest.xml
