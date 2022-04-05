@@ -130,3 +130,6 @@ dmypy.json
 .idea
 pytest-coverage.txt
 pytest.xml
+
+.idea/
+.pytest_cache/
