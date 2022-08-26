@@ -24,5 +24,7 @@ class MRSOperator(AideOperator):
         if check_valid_mrs(mrs_study):
             mrs_task = MRSTask(mrs_study, context)
             context = mrs_task.process()
+        else:
+            context.set_failure("Data is not valid for MRS")
 
         return context

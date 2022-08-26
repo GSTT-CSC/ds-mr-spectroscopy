@@ -20,6 +20,6 @@ COPY main.py mrs/main.py
 
 WORKDIR /mrs
 
-ENV MANIFEST_PATH=mrs/config/manifest.json
+ENV MANIFEST_PATH=config/manifest.json
 
 CMD ["python", "main.py"]

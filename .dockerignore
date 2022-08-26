@@ -2,3 +2,4 @@
 /documents/
 /.github/
 /venv/
+*.log*
