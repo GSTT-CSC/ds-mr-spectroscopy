@@ -15,7 +15,7 @@ import logging
 
 # MRS_DATA_DIR = os.path.join(TEST_DATA_DIR, 'mrs')
 MRS_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data', 'mrs')
-os.makedirs(MRS_DATA_DIR, exist_ok=True)
+# os.makedirs(MRS_DATA_DIR, exist_ok=True)
 
 logging.basicConfig(filename='tests_log.log', encoding='utf-8', level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -80,6 +80,7 @@ class TestPhilipsMRSStudy(unittest.TestCase):
         N_res = len([i for i in os.listdir(res_dir) if os.path.isdir(os.path.join(res_dir, i))])
         assert N_res == 2
 
+    @pytest.mark.skip(reason='Cannot perform test because test data is not suitable: spectral width tag missing')
     def testRawAndMRSStudy(self):
         res_dir = os.path.join(APP_DATA_DIR, 'MRS_DTI_QA', '20180404')
         try:

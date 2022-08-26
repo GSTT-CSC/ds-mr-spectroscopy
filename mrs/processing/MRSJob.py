@@ -169,7 +169,7 @@ class MRSJob:
                 result = subprocess.run(command, shell=False, stdout=subprocess.PIPE, cwd=self.job_results_dir)
                 result = subprocess.run(['tee', self.tarquin_log_filename], input=result.stdout)
             except Exception as e:
-                log.warn('Execution of Tarquin command failed')
+                log.exception('Execution of Tarquin command failed')
                 raise e
 
             log.warn('Re-running gnuplot')
@@ -215,6 +215,7 @@ class MRSJob:
                                 os.path.join(self.job_results_dir, self.png_filename + '.png')], check=True)
                 os.chdir(cwd)
             except Exception as e:
+                log.exception(e)
                 raise e
 
             log.warn('Converting PNG to DICOM')
@@ -363,8 +364,8 @@ class MRSJob:
         for k, v in elements_to_transfer_meta.items():
             try:
                 setattr(file_meta, k, getattr(dcm.file_meta, v))
-            except:
-                log.warning(f"Could not transfer tag for keyword {k}")
+            except Exception as e:
+                log.warning(f"Could not transfer tag for keyword {k} due to exception: {e}")
 
         log.warn('Build non-meta-info which needs to transferred to new dicoms')
         series_manu_offset = 0
@@ -446,8 +447,8 @@ class MRSJob:
         for k, v in elements_to_transfer.items():
             try:
                 setattr(ds, k, getattr(dcm, v))
-            except:
-                log.warning(f"Could not transfer tag for keyword {k}")
+            except Exception as e:
+                log.warning(f"Could not transfer tag for keyword {k} due to exception: {e}")
 
         log.warn('Add MRS PNGs to DICOM')
         png_counter = len(glob.glob1(self.job_results_dir, "*.png"))
@@ -675,8 +676,8 @@ class MRSJob:
         try:
             myemail.nhs_mail([mail_recipients], subject, message, attachments)
             log.warn('Emails successfully sent')
-        except:
-            log.warn('Emails could not be sent')
+        except Exception as e:
+            log.warn(f'Emails could not be sent due to exception {e}')
             raise
 
         return 0

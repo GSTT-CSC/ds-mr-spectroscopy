@@ -84,12 +84,15 @@ class MRSTask:
                         'This MRS Processing job failed to complete and has not been archived to any PACS. The file(s) still '
                         'exists on the dicomserver in an intermediate folder. The process failed with the following '
                         'exception: \n{}'.format(e), [])
+                    log.exception(e)
+                    raise e
                 try:
                     context_output = self.archive(mrs_job)
                     success = True
                     # log.warning('not archiving here - should be done at operator level')
                 except Exception as e:
                     log.exception(e)
+                    raise e
                 except subprocess.CalledProcessError as e:
                     try:
                         log.critical('Could not archive MRS Job. \nstorescu:\n{}'.format(e.stdout.decode('utf-8')))
@@ -102,14 +105,15 @@ class MRSTask:
                                 '\n{}'.format(e.stdout.decode('utf-8')),
                                 attachments=[])
                         except ConnectionRefusedError:
-                            raise
-                    except:
-                        raise
+                            raise ConnectionRefusedError
+                    except e:
+                        log.exception(e)
+                        raise e
                 try:
                     self.notify(mrs_job)
                 except Exception as e:
                     log.warning('Could not send notification of MRS Study {}'.format(e))
-                    raise
+                    # raise  notification failures should not cause failure
                 if success:
                     log.warn('MRS task complete for subject_id: {}'.format(self.study.subject_id))
                     return context_output
@@ -128,14 +132,14 @@ class MRSTask:
             # return unmodified context
             return self.context
 
-        log.warn(f'Searching for archivable in {mrs_job.job_results_dir}')
+        log.info(f'Searching for archivable in {mrs_job.job_results_dir}')
 
         for item in os.listdir(mrs_job.job_results_dir):
 
             log.warn(f'Item: {item}')
 
             if 'Tarquin_Output' in item and '.dcm' in item:
-                log.warn(f'Archiving Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
+                log.info(f'Archiving Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
                 mrspath = os.path.join(mrs_job.job_results_dir, item)
                 file_manager = FileStorage(self.context)
                 outpath = file_manager.save_dicom(item, dcmread(mrspath))
@@ -182,7 +186,7 @@ class MRSTask:
                              attachments=reports)
         except Exception as e:
             log.exception(e)
-            raise  # because firewall won't let gmail send for some reason, maybe need different port
+            raise e  # because firewall won't let gmail send for some reason, maybe need different port
 
     def report(self):
         """
@@ -260,7 +264,7 @@ class MRSTask:
                  i in range(0, N_min)]
 
                 if len(siemens_water_ref_list) != len(siemens_water_sup_list):
-                    log.warning(
+                    log.warn(
                         'Number of water references in series does not equal number of water suppressed scans')
 
         elif self.is_qa is False:
@@ -270,6 +274,8 @@ class MRSTask:
                 if ('_ref' in series.dicom_list[0].SeriesDescription) and (series.manufacturer.lower() == 'siemens'):
                     self.list_of_mrs_job_input_lists.append([series])  # Square brackets here to make list of containing list for each job
                     datetimes.append(datetime.datetime.strptime(series.dicom_list[0].AcquisitionDateTime, '%Y%m%d%H%M%S.%f'))
+
+            log.info(f'Created Siemens job list: {self.list_of_mrs_job_input_lists}')
 
             # Now filter other series
             for series_tmp in mrs_list:
