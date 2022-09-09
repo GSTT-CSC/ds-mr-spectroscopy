@@ -50,8 +50,6 @@ class MRSTask:
 
     @property
     def valid(self) -> bool:
-        log.warn('Checking validity of {self.study} for {self} - returns true if Study has an MRS in it.'.format(
-            **locals()))
         for series in self.study.series_list:
             for dcm in series.dicom_list:
                 if is_mrs(dcm):
@@ -67,8 +65,9 @@ class MRSTask:
 
         self.build_jobs_list()
         success = False
+        log.info('Starting MRSTask.process()')
         for job_series_list in self.list_of_mrs_job_input_lists:
-
+            log.info(f'processing job list {job_series_list}')
             if len(job_series_list) > 0:
 
                 mrs_job = MRSJob(job_series_list, MRSTask.mrs_app_dir, self.is_qa, MRSTask.qa_dir,
@@ -84,38 +83,44 @@ class MRSTask:
                         'This MRS Processing job failed to complete and has not been archived to any PACS. The file(s) still '
                         'exists on the dicomserver in an intermediate folder. The process failed with the following '
                         'exception: \n{}'.format(e), [])
-                    log.exception(e)
+                    log.exception(f'MRSJob.mrs_process_job() failed with exception: {e}')
                     raise e
+
                 try:
+                    log.exception(f'MRSJob.mrs_process_job() success: archiving data')
                     context_output = self.archive(mrs_job)
                     success = True
-                    # log.warning('not archiving here - should be done at operator level')
+                    log.info('MRS data processed successfully')
+
                 except Exception as e:
                     log.exception(e)
                     raise e
-                except subprocess.CalledProcessError as e:
-                    try:
-                        log.critical('Could not archive MRS Job. \nstorescu:\n{}'.format(e.stdout.decode('utf-8')))
-                        try:
-                            myemail.nhs_mail(
-                                [SETTINGS['mrs']['clinical_email_list']],
-                                'MRS Failure {}'.format(self.study.subject_id),
-                                'This MRS Processing job completed but failed to archive to PACS.'
-                                'The archive method failed with the following error: '
-                                '\n{}'.format(e.stdout.decode('utf-8')),
-                                attachments=[])
-                        except ConnectionRefusedError:
-                            raise ConnectionRefusedError
-                    except e:
-                        log.exception(e)
-                        raise e
+
+                # except subprocess.CalledProcessError as e:
+                #     try:
+                #         log.critical('Could not archive MRS Job. \nstorescu:\n{}'.format(e.stdout.decode('utf-8')))
+                #         try:
+                #             myemail.nhs_mail(
+                #                 [SETTINGS['mrs']['clinical_email_list']],
+                #                 'MRS Failure {}'.format(self.study.subject_id),
+                #                 'This MRS Processing job completed but failed to archive to PACS.'
+                #                 'The archive method failed with the following error: '
+                #                 '\n{}'.format(e.stdout.decode('utf-8')),
+                #                 attachments=[])
+                #         except ConnectionRefusedError:
+                #             raise ConnectionRefusedError
+                #     except e:
+                #         log.exception(e)
+                #         raise e
+
                 try:
                     self.notify(mrs_job)
                 except Exception as e:
-                    log.warning('Could not send notification of MRS Study {}'.format(e))
+                    log.exception('Could not send notification of MRS Study {}'.format(e))
                     # raise  notification failures should not cause failure
+
                 if success:
-                    log.warn('MRS task complete for subject_id: {}'.format(self.study.subject_id))
+                    log.info('MRS task complete for subject_id: {}'.format(self.study.subject_id))
                     return context_output
 
     def archive(self, mrs_job):
@@ -128,7 +133,7 @@ class MRSTask:
         log.info("Archiving {mrs_job.water_sup_series}".format(**locals()))
 
         if self.is_qa:
-            log.warn('Study is QA, so do not archive to PACS')
+            log.info('Study is QA, so do not archive to PACS')
             # return unmodified context
             return self.context
 
@@ -136,14 +141,14 @@ class MRSTask:
 
         for item in os.listdir(mrs_job.job_results_dir):
 
-            log.warn(f'Item: {item}')
+            log.info(f'Item: {item}')
 
             if 'Tarquin_Output' in item and '.dcm' in item:
                 log.info(f'Archiving Tarquin DICOM output: {os.path.join(mrs_job.job_results_dir, item)}')
                 mrspath = os.path.join(mrs_job.job_results_dir, item)
                 file_manager = FileStorage(self.context)
                 outpath = file_manager.save_dicom(item, dcmread(mrspath))
-                log.warn(f'Saved to: {outpath}')
+                log.info(f'Saved to: {outpath}')
                 self.context.add_resource(Resource(format='dicom', content_type='result', file_path=outpath))
         return self.context
 
@@ -160,7 +165,7 @@ class MRSTask:
         reports = []
 
         for item in os.listdir(mrs_job.job_results_dir):
-            log.warn('Item: {item}'.format(**locals()))
+            log.info('Item: {item}'.format(**locals()))
 
             # Tarquin produces png files, one for each page of the pdf. Attaching pngs instead of pdf as it can be
             # attached inline of the message.
@@ -253,7 +258,7 @@ class MRSTask:
                     elif 'water_suppressed' in series_type:
                         siemens_water_sup_list.append(series)
                     else:
-                        log.warn(
+                        log.info(
                             'Series {series} is not water_reference or water_suppressed - not adding to MRSJob list')
 
             if series.manufacturer.lower() == 'siemens':

@@ -14,7 +14,6 @@ from config.config import SETTINGS
 from mrs import VERSION
 from PIL import Image
 import mrs.tools.myemail as myemail
-from mrs.dicom.series import Series
 from mrs.tools.tools import get_te_ms, get_voxel_size, identify_siemens_mrs_series_type, fwhm, make_qa_plots, analysis, get_tf_mhz
 from aide_sdk.logger.logger import LogManager
 
@@ -54,13 +53,14 @@ class MRSJob:
         # Check job is valid
         if self.series_list[0].manufacturer == 'Philips Medical Systems':
             if len(self.series_list) != 1:
-                raise Exception(
-                    'Philips MRSJob, but number of series in series_list is not one. Therefore not possible to process')
+                log.exception('Philips MRSJob, but number of series in series_list is not one. Therefore not possible to process')
+                raise Exception
         elif self.series_list[0].manufacturer.lower() == 'siemens':
             if (len(self.series_list) > 3) or (len(self.series_list) == 0):
-                raise Exception(
+                log.exception(
                     'Siemens MRSJob, but number of series in series_list is bigger than three or zero. '
                     'Therefore not possible to process.')
+                raise Exception
 
         # Sort through series list to figure out the water suppressed and any water reference scan
         if self.series_list[0].manufacturer == 'Philips Medical Systems':
@@ -75,10 +75,10 @@ class MRSJob:
         # Results folder specifically for this job
         self.job_results_dir = os.path.join(self.mrs_app_dir, self.water_sup_series.subject_id,
                                             self.water_sup_series.study_date, self.clean_job_name)
-        log.warn('Making job directory: {self.job_results_dir}'.format(**locals()))
+        log.info('Making job directory: {self.job_results_dir}'.format(**locals()))
         os.makedirs(self.job_results_dir, exist_ok=True)
 
-        log.warn('Archiving raw series to results folder')
+        log.info('Archiving raw series to results folder')
         shutil.copyfile(self.water_sup_series.dicom_list[0].filename,
                         os.path.join(self.job_results_dir, self.output_filename_root + 'MRS_DICOM_data.dcm'))
         if bool(self.water_ref_series) is True:
@@ -87,92 +87,92 @@ class MRSJob:
 
         if (self.water_sup_series.dicom_list[0].Manufacturer.lower() == 'siemens') and (self.is_qa is True):
 
-            log.warn('Performing Siemens MRS QA processing')
+            log.info('Performing Siemens MRS QA processing')
 
             res = self.process_siemens_qa_data()
 
             try:
-                log.warn('Archiving Siemens QA results to csv file')
+                log.info('Archiving Siemens QA results to csv file')
                 self.archive_siemens_qa(res)
-            except:
+            except Exception as e:
+                log.exception(f'Could  not archive data due to exceptin: {e}')
                 raise Exception("Could not archive data")
 
             try:
-                log.warn('Making plots and sending email')
+                log.info('Making plots and sending email')
                 self.report_siemens_qa()
                 return True
             except:
-                log.warn('Reporting failed')
+                log.exception('Reporting failed')
                 raise Exception("Could not report data")
 
         else:
             if self.series_list[0].manufacturer == 'Philips Medical Systems':
-                series_name = self.series_list[0].series_name
-                series_uid = self.series_list[0].series_uid
-                log.warn(f'Reading Philips [{series_name}/{series_uid}] .dcm with suspect')
-                raw_data = suspect.io.load_dicom(self.water_sup_series.dicom_list[0].filename)
-                dynamics = raw_data.shape[0]
-                ws_dynamics = dynamics // 2  # This matches all current Philips test data
-                log.warn('Separating Philips water reference from WS data and averaging transients')
-                mean_raw_data = np.mean(raw_data[0:ws_dynamics, :], axis=0)
-                mean_water_ref_data = np.mean(raw_data[ws_dynamics:, :], axis=0)
-                # Overwrite suspect default TE, no other method available
-                raw_data._te = float(get_te_ms(self.water_sup_series))
-                mean_raw_data._te = float(get_te_ms(self.water_sup_series))
-                mean_water_ref_data._te = float(get_te_ms(self.water_sup_series))
-                log.warn(f'TE of processed spectrum is {mean_raw_data._te} ms')
-                log.warn(
-                    'doing spectral registration in the frequency domain using suspect for water suppressed'
-                    ' Philips data')
+                try:
+                    log.info('Starting Philis MRS processing')
+                    series_name = self.series_list[0].series_name
+                    series_uid = self.series_list[0].series_uid
+                    log.info(f'Reading Philips [{series_name}/{series_uid}] .dcm with suspect')
+                    raw_data = suspect.io.load_dicom(self.water_sup_series.dicom_list[0].filename)
+                    dynamics = raw_data.shape[0]
+                    ws_dynamics = dynamics // 2  # This matches all current Philips test data
+                    log.info('Separating Philips water reference from WS data and averaging transients')
+                    mean_raw_data = np.mean(raw_data[0:ws_dynamics, :], axis=0)
+                    mean_water_ref_data = np.mean(raw_data[ws_dynamics:, :], axis=0)
+                    # Overwrite suspect default TE, no other method available
+                    raw_data._te = float(get_te_ms(self.water_sup_series))
+                    mean_raw_data._te = float(get_te_ms(self.water_sup_series))
+                    mean_water_ref_data._te = float(get_te_ms(self.water_sup_series))
+                    log.info(f'TE of processed spectrum is {mean_raw_data._te} ms')
+                    log.info(
+                        'doing spectral registration in the frequency domain using suspect for water suppressed'
+                        ' Philips data')
 
-                tf = get_tf_mhz(self.water_sup_series)
-                fc_data = suspect.processing.frequency_correction.correct_frequency_and_phase(raw_data[0:ws_dynamics],
-                                                                                              raw_data[0],
-                                                                                              method='rats',
-                                                                                              frequency_range=(
-                                                                                              1.7 * tf, 5.5 * tf)
-                                                                                              )
-                final_fc_data = np.mean(fc_data, axis=0)
-                log.warn(
-                    'doing spectral registration in the frequency domain using suspect for water unsuppressed '
-                    'Philips data')
+                    tf = get_tf_mhz(self.water_sup_series)
+                    fc_data = suspect.processing.frequency_correction.correct_frequency_and_phase(raw_data[0:ws_dynamics],
+                                                                                                  raw_data[0],
+                                                                                                  method='rats',
+                                                                                                  frequency_range=(
+                                                                                                  1.7 * tf, 5.5 * tf)
+                                                                                                  )
+                    final_fc_data = np.mean(fc_data, axis=0)
+                    log.info(
+                        'doing spectral registration in the frequency domain using suspect for water unsuppressed '
+                        'Philips data')
 
-                fc_data_ref = suspect.processing.frequency_correction.correct_frequency_and_phase(
-                    raw_data[ws_dynamics:],
-                    raw_data[ws_dynamics],
-                    method='rats',
-                    frequency_range=None
-                    )
+                    fc_data_ref = suspect.processing.frequency_correction.correct_frequency_and_phase(
+                        raw_data[ws_dynamics:],
+                        raw_data[ws_dynamics],
+                        method='rats',
+                        frequency_range=None
+                        )
 
-                final_fc_data_ref = np.mean(fc_data_ref, axis=0)
+                    final_fc_data_ref = np.mean(fc_data_ref, axis=0)
 
-                log.warn('Saving TARQUIN dpt files')
-                suspect.io.tarquin.save_dpt(os.path.join(self.job_results_dir, self.output_filename_root + 'fc.dpt'),
-                                            final_fc_data)
-                suspect.io.tarquin.save_dpt(
-                    os.path.join(self.job_results_dir, self.output_filename_root + 'fc_ref.dpt'), final_fc_data_ref)
-                suspect.io.tarquin.save_dpt(os.path.join(self.job_results_dir, self.output_filename_root + 'avg.dpt'),
-                                            mean_raw_data)
-                suspect.io.tarquin.save_dpt(
-                    os.path.join(self.job_results_dir, self.output_filename_root + 'avg_ref.dpt'), mean_water_ref_data)
+                    log.info('Saving TARQUIN dpt files')
+                    suspect.io.tarquin.save_dpt(os.path.join(self.job_results_dir, self.output_filename_root + 'fc.dpt'),
+                                                final_fc_data)
+                    suspect.io.tarquin.save_dpt(
+                        os.path.join(self.job_results_dir, self.output_filename_root + 'fc_ref.dpt'), final_fc_data_ref)
+                    suspect.io.tarquin.save_dpt(os.path.join(self.job_results_dir, self.output_filename_root + 'avg.dpt'),
+                                                mean_raw_data)
+                    suspect.io.tarquin.save_dpt(
+                        os.path.join(self.job_results_dir, self.output_filename_root + 'avg_ref.dpt'), mean_water_ref_data)
+                except Exception as e:
+                    log.exception(f'Philips MRS processing with suspect failed due to exception: {e}')
+                    raise e
 
-            log.warn('Performing Tarquin processing')
             command = self.build_tarquin_command()
 
-            log.warn('Writing tarquin command line to a text file so it is easy to rerun on a later date')
-            with open(os.path.join(self.job_results_dir, self.output_filename_root + 'tarquin_command.txt'),
-                      "w") as text_file:
-                text_file.write(" ".join(command))
-
-            log.warn('Tarquin command to be executed: {command}'.format(**locals()))
+            log.info('Tarquin command to be executed: {command}'.format(**locals()))
             try:
                 result = subprocess.run(command, shell=False, stdout=subprocess.PIPE, cwd=self.job_results_dir)
                 result = subprocess.run(['tee', self.tarquin_log_filename], input=result.stdout)
             except Exception as e:
-                log.exception('Execution of Tarquin command failed')
+                log.exception(f'Execution of Tarquin command failed due ot exception: {e}')
                 raise e
 
-            log.warn('Re-running gnuplot')
+            log.info('Re-running gnuplot')
             # Read in the file
             with open(os.path.join(self.job_results_dir, 'gnuplot.txt'), 'r') as file:
                 filedata = file.read()
@@ -186,7 +186,7 @@ class MRSJob:
                                         'with previous LCModel results" at screen(0.5),graph(-0.1) textcolor "red"'
                                         ' center font "Courier,16" ')
 
-            # Write the file out againx
+            # Write the file out again
             with open(os.path.join(self.job_results_dir, 'gnuplot.txt'), 'w') as file:
                 file.write(filedata)
 
@@ -198,14 +198,14 @@ class MRSJob:
                 shell=True)
             os.chdir(cwd)
 
-            log.warn('Rename Tarquin output files')
+            log.info('Rename Tarquin output files')
             f_list = os.listdir(self.job_results_dir)
             for f in f_list:
                 if str.startswith(f, self.output_filename_root) is False:
                     os.rename(os.path.join(self.job_results_dir, f),
                               os.path.join(self.job_results_dir, self.output_filename_root + f))
 
-            log.warn('Converting PDF to PNG format')
+            log.info('Converting PDF to PNG format')
             self.png_filename = self.output_filename_root + 'Tarquin_Output'
             try:
                 cwd = os.getcwd()
@@ -218,22 +218,22 @@ class MRSJob:
                 log.exception(e)
                 raise e
 
-            log.warn('Converting PNG to DICOM')
+            log.info('Converting PNG to DICOM')
             self.create_mrs_dicom()
 
         return True
 
     def build_tarquin_command(self):
 
-        log.warn('Running build_tarquin_command')
+        log.info('Running build_tarquin_command')
 
         vox = get_voxel_size(self.water_sup_series)
         vox_num = [float(i) for i in vox]
         volume_ml = str(np.prod(vox_num) / 1000)
-        log.warn('Voxel size = {vox} and volumes from DICOM'.format(**locals()))
+        log.info('Voxel size = {vox} and volumes from DICOM'.format(**locals()))
 
         te_ms = get_te_ms(self.water_sup_series)
-        log.warn('TE = {te_ms} from DICOM'.format(**locals()))
+        log.info('TE = {te_ms} from DICOM'.format(**locals()))
 
         # Build output file names
         tarquin_output_pdf_filename = os.path.join(self.job_results_dir,
@@ -267,7 +267,7 @@ class MRSJob:
         output_fit_string = ['--output_fit'] + [tarquin_output_csv_filename]
         gnuplot_string = ['--gnuplot'] + [SETTINGS['mrs']['gnuplot']] + ['--stack_pdf'] + ['true']
 
-        log.warn('Building Tarquin parameter string')
+        log.info('Building Tarquin parameter string')
         tarquin_param_string = self.build_tarquin_param_string()
 
         if self.is_qa is False:
@@ -275,7 +275,7 @@ class MRSJob:
                 input_string = input_string + ['--input_w'] + [self.water_ref_series.dicom_list[0].filename]
         else:
             if self.water_sup_series.dicom_list[0].Manufacturer.lower() == 'siemens':
-                log.warn('Should not have got to this point, as not using tarquin for Siemens QA - raise error')
+                log.info('Should not have got to this point, as not using tarquin for Siemens QA - raise error')
                 raise Exception('Should not have got to this point')
 
         command = [
@@ -294,6 +294,7 @@ class MRSJob:
         water_ref_series: dicomserver.dicom.Series
             The series in self.series_list which is the water reference MRS
         """
+        log.info('sorting siemens mrs data into water reference and suppressed')
         water_sup_series = []
         water_ref_series = []
         # This code distinguishes between water UN-suppressed and water suppressed file
@@ -310,7 +311,7 @@ class MRSJob:
 
     def build_tarquin_param_string(self):
 
-        log.warn('Building Tarquin parameter string from mrs.cfg SETTINGS')
+        log.info('Building Tarquin parameter string from mrs.cfg SETTINGS')
 
         param_str = []
         settings_field = ''
@@ -326,7 +327,7 @@ class MRSJob:
             if self.is_qa is False:
                 return param_str
         else:
-            log.warn('Unknown manufacturer')
+            log.info('Unknown manufacturer')
             return param_str
 
         for name, value in SETTINGS.items(settings_field):
@@ -339,12 +340,12 @@ class MRSJob:
         # ALTERNATIVE TO THIS FUNCTION
         # pdf2dcm +se REFERENCE_DCM.dcm INPUT_PDF.pdf OUTPUT_DICOM.dcm
 
-        log.warn('Running create_mrs_dicom function')
+        log.info('Running create_mrs_dicom function')
 
         dcm = self.water_sup_series.dicom_list[0]
 
         # Populate required values for file meta information
-        log.warn("Setting file meta information...")
+        log.info("Setting file meta information...")
         file_meta = pyd.Dataset()
         unique_uid = pyd.uid.generate_uid()
         elements_to_define_meta = {'FileMetaInformationGroupLength': 210,
@@ -357,7 +358,7 @@ class MRSJob:
                                      'TransferSyntaxUID': 'TransferSyntaxUID',
                                      }
 
-        log.warn('Add the data elements to the metadata')
+        log.info('Add the data elements to the metadata')
         for k, v in elements_to_define_meta.items():
             setattr(file_meta, k, v)
 
@@ -365,9 +366,9 @@ class MRSJob:
             try:
                 setattr(file_meta, k, getattr(dcm.file_meta, v))
             except Exception as e:
-                log.warning(f"Could not transfer tag for keyword {k} due to exception: {e}")
+                log.exception(f"Could not transfer tag for keyword {k} due to exception: {e}")
 
-        log.warn('Build non-meta-info which needs to transferred to new dicoms')
+        log.info('Build non-meta-info which needs to transferred to new dicoms')
         series_manu_offset = 0
         if dcm.Manufacturer == 'Philips Medical Systems':
             series_manu_offset = 20
@@ -448,9 +449,9 @@ class MRSJob:
             try:
                 setattr(ds, k, getattr(dcm, v))
             except Exception as e:
-                log.warning(f"Could not transfer tag for keyword {k} due to exception: {e}")
+                log.exception(f"Could not transfer tag for keyword {k} due to exception: {e}")
 
-        log.warn('Add MRS PNGs to DICOM')
+        log.info('Add MRS PNGs to DICOM')
         png_counter = len(glob.glob1(self.job_results_dir, "*.png"))
         if png_counter == 1:
             im1 = Image.open(os.path.join(self.job_results_dir, self.png_filename + '.png'))
@@ -474,10 +475,10 @@ class MRSJob:
             ds2.file_meta.MediaStorageSOPInstanceUID = unique_uid2
             ds2.SOPInstanceUID = unique_uid2
 
-            log.warn('Media UID of File 1 = ' + ds.file_meta.MediaStorageSOPInstanceUID)
-            log.warn('Media UID of File 2 = ' + ds2.file_meta.MediaStorageSOPInstanceUID)
-            log.warn('SOP UID of File 1 = ' + ds.SOPInstanceUID)
-            log.warn('SOP UID of File 2 = ' + ds2.SOPInstanceUID)
+            log.info('Media UID of File 1 = ' + ds.file_meta.MediaStorageSOPInstanceUID)
+            log.info('Media UID of File 2 = ' + ds2.file_meta.MediaStorageSOPInstanceUID)
+            log.info('SOP UID of File 1 = ' + ds.SOPInstanceUID)
+            log.info('SOP UID of File 2 = ' + ds2.SOPInstanceUID)
 
             setattr(ds, 'PixelData', im1.tobytes())
             ds.save_as(os.path.join(self.job_results_dir, self.output_filename_root + '_Tarquin_Output.dcm'),
@@ -489,13 +490,14 @@ class MRSJob:
                 write_like_original=False)
 
         else:
-            raise Exception('No png files to convert to DICOMs')
+            log.exception('No png files to convert to DICOMs')
+            raise Exception
 
         return
 
     def process_siemens_qa_data(self):
 
-        log.warn('Running process_siemens_qa_data')
+        log.info('Running process_siemens_qa_data')
 
         n_reject = 50
         n_pad_factor = 3
@@ -562,7 +564,7 @@ class MRSJob:
 
     def archive_siemens_qa(self, dv):
 
-        log.warn('Running archive_siemens_qa')
+        log.info('Running archive_siemens_qa')
 
         # Check that only single values being passed to archive
         if dv.shape != (6,):
@@ -606,7 +608,7 @@ class MRSJob:
 
     def report_siemens_qa(self):
 
-        log.warn('Reporting Results')
+        log.info('Reporting Results')
 
         # First open database file
         with open(self.qa_db_full_filename, 'r') as f:
@@ -620,7 +622,7 @@ class MRSJob:
             # Go through all lines
             data = [r for r in filereader]
 
-        log.warn('Data successfully imported')
+        log.info('Data successfully imported')
 
         #  Convert data list of lists to numpy array for plotting
         data = np.array(data)
@@ -634,7 +636,7 @@ class MRSJob:
         h2o_fwhm_v = np.ndarray.astype(data[:, 9], dtype=float)
         ace_fwhm_v = np.ndarray.astype(data[:, 10], dtype=float)
 
-        log.warn('Ready to analyse')
+        log.info('Ready to analyse')
 
         # Do analysis
         h2o_snr_ao = analysis(h2o_snr_v)
@@ -644,7 +646,7 @@ class MRSJob:
         h2o_fwhm_ao = analysis(h2o_fwhm_v)
         ace_fwhm_ao = analysis(ace_fwhm_v)
 
-        log.warn('Data successfully analysed')
+        log.info('Data successfully analysed')
 
         #  Generate plots
         h2o_snr_f1, h2o_snr_f2 = make_qa_plots(self.job_results_dir, doy_v, h2o_snr_v, 'H2O_SNR')
@@ -654,7 +656,7 @@ class MRSJob:
         h2o_fwhm_f1, h2o_fwhm_f2 = make_qa_plots(self.job_results_dir, doy_v, h2o_fwhm_v, 'H2O_FWHM')
         ace_fwhm_f1, ace_fwhm_f2 = make_qa_plots(self.job_results_dir, doy_v, ace_fwhm_v, 'Acetone_FWHM')
 
-        log.warn('Plots successfully made and saved')
+        log.info('Plots successfully made and saved')
 
         # Send email
         mail_recipients = SETTINGS['mrs']['qa_email_list']
@@ -675,9 +677,9 @@ class MRSJob:
 
         try:
             myemail.nhs_mail([mail_recipients], subject, message, attachments)
-            log.warn('Emails successfully sent')
+            log.info('Emails successfully sent')
         except Exception as e:
-            log.warn(f'Emails could not be sent due to exception {e}')
+            log.info(f'Emails could not be sent due to exception {e}')
             raise
 
         return 0
