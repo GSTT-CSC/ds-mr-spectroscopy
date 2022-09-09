@@ -8,6 +8,11 @@ In this way, MRI can identify tumour anatomical location, whilst MRS can be used
 Single-voxel spectroscopy (SVS) techniques are the simplest techniques to acquire and intepret so are the most widely used. 
 They provide a high signal-to-noise ratio in a short scan time.
 
+## Intended Use
+
+This proof of concept ([TRL 4](https://en.wikipedia.org/wiki/Technology_readiness_level)) is intended as an application to test MRS data processing on the AIDE deployment platform. It is not intended for deployment in a clinical or non-clinical setting without further development and compliance with the [UK Medical Device Regulations 2002](https://www.legislation.gov.uk/uksi/2002/618/contents/made) where the product qualifies as a medical device.
+
+
 ## Project Proposal
 
 ### Clinical Background
