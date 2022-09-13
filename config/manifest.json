@@ -3,5 +3,5 @@
   "predicate": "DICOM_Modality == 'MR' AND DICOM_Manufacturer == 'Philips Medical Systems' OR DICOM_Manufacturer == 'Siemens' OR DICOM_Manufacturer == 'SIEMENS' OR DICOM_Manufacturer == 'siemens'",
   "mode": "QA",
   "model_name": "mrs-tarquin",
-  "model_version": "0.1.1"
+  "model_version": "0.1.2"
 }
