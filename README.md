@@ -1,3 +1,26 @@
+<!-- PROJECT HEADING -->
+<br />
+<p align="center">
+<a href="https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy">
+    <img src="https://raw.githubusercontent.com/GSTT-CSC/gstt-csc.github.io/main/assets/transparent-CSC-logo-cropped.png" alt="Logo" width="50%">
+  </a>
+<h1 align="center">MR Spectroscopy</h1>
+<p align="center">
+<br />
+<a href="https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy"><strong>Explore the docs »</strong></a>
+<br />
+<br />
+<a href="https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy">View repo</a>
+·
+<a href="https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy/issues">Report Bug</a>
+·
+<a href="https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy/issues">Request Feature</a>
+</p>
+<p align="center">
+  <img src="https://github.com/GSTT-CSC/0018-ds-mr-spectroscopy/workflows/test_production_mrs.yml/badge.svg?branch=main">
+  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/laurencejackson/e1aa11345e5c62d9ea100a83a0f4bfc9/MRS_cov_badge.json">
+</p>
+
 # MR Spectroscopy
 
 Clinical MRS at the end of a standard MRI examination obtains functional information in addition to anatomical information. 

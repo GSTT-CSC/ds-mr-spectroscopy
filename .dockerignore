@@ -1,0 +1,5 @@
+/tests/
+/documents/
+/.github/
+/venv/
+*.log*

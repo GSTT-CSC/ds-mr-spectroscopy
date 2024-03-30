@@ -128,3 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .idea
+pytest-coverage.txt
+pytest.xml
+
+.idea/
+.pytest_cache/
